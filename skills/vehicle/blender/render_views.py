@@ -144,6 +144,10 @@ def standard_views(spec):
         'engine': dict(eye=(1.4, 3.4, 2.6), target=(0, 1.15, 0.6), lens=40),
         'crush_front': dict(eye=(4.4, -5.6, 1.7), target=(0, -1.0, 0.5), lens=50),
         'night': dict(eye=(4.8, -6.6, 1.2), target=(0, -0.4, 0.55), lens=50),
+        # reflection check (zebra): mirror paint under a striped sky; ripples show as wobbly stripes
+        'zebra_front34': dict(eye=(5.2, -6.4, 2.2), target=(0, -0.2, 0.55), lens=55),
+        'zebra_side': dict(eye=(7.5, 0.3, 1.4), target=(0, 0.0, 0.6), lens=45),
+        'zebra_top': dict(eye=(3.0, -2.5, 5.5), target=(0, -0.3, 0.6), lens=40),
     }
 
 
@@ -238,8 +242,70 @@ def _feature(view, pivots, on, world):
                 kb = ob.data.shape_keys.key_blocks.get('Crush_Front')
                 if kb:
                     kb.value = 1.0 if on else 0.0
+    if view.startswith('zebra'):
+        zebra(on)
     if view == 'night' and world is not None:
         world.inputs['Strength'].default_value = 0.04 if on else 1.0
         sun = bpy.data.objects.get('_sun')
         if sun:
             sun.hide_render = on
+
+
+_ZEBRA = {}
+
+
+def zebra(on):
+    """Swap the paint for a mirror and the sky for horizontal black/white bands (or restore)."""
+    sc = bpy.context.scene
+    if on:
+        m = bpy.data.materials.get('_zebra_chrome') or bpy.data.materials.new('_zebra_chrome')
+        m.use_nodes = True
+        p = next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+        p.inputs['Base Color'].default_value = (0.95, 0.95, 0.95, 1)
+        p.inputs['Metallic'].default_value = 1.0
+        p.inputs['Roughness'].default_value = 0.0
+        paint = bpy.data.materials.get('Paint')
+        swapped = []
+        for ob in bpy.data.objects:
+            if ob.type == 'MESH':
+                for i, slot in enumerate(ob.material_slots):
+                    if slot.material == paint:
+                        swapped.append((ob, i, paint))
+                        slot.material = m
+        w = bpy.data.worlds.get('_zebra') or bpy.data.worlds.new('_zebra')
+        w.use_nodes = True
+        nt = w.node_tree
+        nt.nodes.clear()
+        out = nt.nodes.new('ShaderNodeOutputWorld')
+        bg = nt.nodes.new('ShaderNodeBackground')
+        tc = nt.nodes.new('ShaderNodeTexCoord')
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        mul = nt.nodes.new('ShaderNodeMath')
+        mul.operation = 'MULTIPLY'
+        mul.inputs[1].default_value = 14.0
+        fr = nt.nodes.new('ShaderNodeMath')
+        fr.operation = 'FRACT'
+        gt = nt.nodes.new('ShaderNodeMath')
+        gt.operation = 'GREATER_THAN'
+        gt.inputs[1].default_value = 0.5
+        nt.links.new(tc.outputs['Generated'], sep.inputs[0])
+        nt.links.new(sep.outputs['Z'], mul.inputs[0])
+        nt.links.new(mul.outputs[0], fr.inputs[0])
+        nt.links.new(fr.outputs[0], gt.inputs[0])
+        nt.links.new(gt.outputs[0], bg.inputs['Color'])
+        bg.inputs['Strength'].default_value = 1.0
+        nt.links.new(bg.outputs[0], out.inputs[0])
+        _ZEBRA.update(world=sc.world, swapped=swapped)
+        sc.world = w
+        fl = bpy.data.objects.get('_floor')
+        if fl:
+            _ZEBRA['floor'] = fl.hide_render
+            fl.hide_render = True
+    elif _ZEBRA:
+        for ob, i, mat in _ZEBRA['swapped']:
+            ob.material_slots[i].material = mat
+        sc.world = _ZEBRA['world']
+        fl = bpy.data.objects.get('_floor')
+        if fl and 'floor' in _ZEBRA:
+            fl.hide_render = _ZEBRA['floor']
+        _ZEBRA.clear()

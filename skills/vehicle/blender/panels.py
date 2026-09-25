@@ -152,9 +152,72 @@ def take(body, part, material=None):
     return piece if len(piece.data.polygons) else None
 
 
+def seal(part, bvh, mats, coll=None):
+    """A black rubber/frit surround following an opening's outline on the body surface."""
+    pts = [p for p, _ in _surface_hits(bvh, part, _densify(poly_of(part), 0.02), inset=-0.002)]
+    if len(pts) < 4:
+        return None
+    t = C.tube(part['name'] + '_Seal', pts, part.get('sealRadius', 0.007), 8, coll, closed=True)
+    t['sealRadius'] = part.get('sealRadius', 0.007)
+    C.set_material(t, mats['Trim_Black'])
+    t['zstack'] = 'exterior'
+    return t
+
+
+def trim_seals(objs, movers, clearance=0.004):
+    """Cut each seal back where it runs within its radius + clearance of anything that moves
+    with a panel it does not ride on (skin, glass, mirror, door card): a real surround stops at
+    the shut line, and a tube lying across one is swept into when the panel opens.
+    movers: {panel name: [objects moving with it]}. Returns {seal: faces removed}."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    trees = [(n, BVHTree.FromObject(o, dg)) for n, obs in movers.items() for o in obs
+             if o.type == 'MESH' and not o.name.endswith('_Seal')]
+    out = {}
+    for ob in list(objs.values()):
+        if not ob.name.endswith('_Seal'):
+            continue
+        own = ob.get('parentPanel', '')
+        reach = ob.get('sealRadius', 0.007) + clearance
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        mw = ob.matrix_world
+        bad = [v for v in bm.verts
+               if any(n != own and t.find_nearest(mw @ v.co, reach)[0] is not None for n, t in trees)]
+        if bad:
+            n0 = len(bm.faces)
+            bmesh.ops.delete(bm, geom=bad, context='VERTS')
+            out[ob.name] = n0 - len(bm.faces)
+            bm.to_mesh(ob.data)
+        bm.free()
+        if not ob.data.polygons:
+            objs.pop(ob.name, None)
+            bpy.data.objects.remove(ob, do_unlink=True)
+    return out
+
+
+def _densify(poly, step):
+    out = []
+    n = len(poly)
+    for i in range(n):
+        (u0, v0), (u1, v1) = poly[i], poly[(i + 1) % n]
+        k = max(1, int(((u1 - u0) ** 2 + (v1 - v0) ** 2) ** 0.5 / step))
+        out += [(u0 + (u1 - u0) * j / k, v0 + (v1 - v0) * j / k) for j in range(k)]
+    return out
+
+
 def openings(body, parts, mats):
     out = {}
+    src = C.duplicate(body, '_bvh_open')
+    bvh = BVHTree.FromObject(src, bpy.context.evaluated_depsgraph_get())
+    bpy.data.objects.remove(src, do_unlink=True)
     for part in expand(parts):
+        # fixed glass gets a rubber surround; glass that rides a door is frameless unless asked
+        # for, since a surround on a moving edge sweeps into the fixed glass beside it
+        if part.get('seal', not part.get('parent')):
+            sl = seal(part, bvh, mats)
+            if sl is not None:
+                sl['parentPanel'] = part.get('parent', '')
+                out[sl.name] = sl
         glass = take(body, part, mats[part.get('glass', 'Glass')])
         if glass is None:
             print('opening cut nothing:', part['name'])

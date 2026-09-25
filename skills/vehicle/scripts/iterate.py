@@ -30,6 +30,10 @@ def main(argv):
         print(__doc__)
         return 2
     run_dir = os.path.abspath(argv[0])
+    if json.load(open(os.path.join(run_dir, 'curves.json'))).get('surface') == 'mesh':
+        print('iterate: the body is a hand-shaped cage (curves.json "surface": "mesh"); this loop edits curves. '
+              'Score with critique.py score and fix the cage by hand (reference/hand-shaping.md).')
+        return 2
     opts = {'--refs': None, '--rounds': '6', '--gain': '0.7', '--edges': 'top', '--blender': 'blender'}
     for i in range(1, len(argv) - 1, 2):
         opts[argv[i]] = argv[i + 1]

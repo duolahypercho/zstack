@@ -121,9 +121,9 @@ PALETTE = {
     # not plastic (metallic base) and not chrome (rough base + separate coat lobe).
     'Paint': ({'color': (0.30, 0.315, 0.325), 'metallic': 0.62, 'rough': 0.40, 'coat': 1.0,
                'coat_rough': 0.03, 'coat_ior': 1.5}, 'flake'),
-    'Glass': ({'color': (0.96, 0.97, 0.97), 'metallic': 0.0, 'rough': 0.0, 'ior': 1.52,
-               'transmission': 1.0}, 'glass'),
-    'GlassTint': ({'color': (0.09, 0.10, 0.11), 'rough': 0.0, 'ior': 1.52, 'transmission': 1.0}, 'glass'),
+    'Glass': ({'color': (0.52, 0.56, 0.57), 'metallic': 0.0, 'rough': 0.0, 'ior': 1.52,
+               'transmission': 1.0}, 'glass'),                      # light green-grey automotive tint
+    'GlassTint': ({'color': (0.14, 0.15, 0.16), 'rough': 0.0, 'ior': 1.52, 'transmission': 1.0}, 'glass'),
     'Lens_Tail': ({'color': (0.55, 0.02, 0.02), 'rough': 0.02, 'ior': 1.49, 'transmission': 1.0}, 'glass'),
     'Trim_Black': ({'color': (0.012, 0.012, 0.013), 'rough': 0.35, 'spec': 0.5}, None),
     'Trim_Satin': ({'color': (0.02, 0.02, 0.022), 'rough': 0.6}, None),

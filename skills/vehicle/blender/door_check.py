@@ -90,7 +90,8 @@ def check(report_path=None, objects=None):
             pv.matrix_basis = rest @ Quaternion(rest.to_quaternion().inverted() @ axis, ang).to_matrix().to_4x4()
             bpy.context.view_layer.update()
             dg = bpy.context.evaluated_depsgraph_get()
-            bvh, verts = world_bvh(moving, dg)
+            mv_owners = []
+            bvh, verts = world_bvh(moving, dg, mv_owners)
             c = sum(verts, Vector()) / len(verts)
             d = c - c0
             out = d.x * side + max(d.z, 0) if side else d.z
@@ -103,6 +104,7 @@ def check(report_path=None, objects=None):
                     worst = len(hits)
                     rec['worstClashStep'] = s
                     rec['clashWith'] = sorted({owners[a] for a, _ in hits})
+                    rec['clashBy'] = sorted({mv_owners[b] for _, b in hits})
             prev_out = out
         pv.matrix_basis = rest
         bpy.context.view_layer.update()

@@ -4,25 +4,25 @@
     "Crush_Front": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Rear": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Left": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Right": {
       "cabinMaxM": 0.0,
       "flippedFaces": 8,
-      "flipFraction": 0.00012,
+      "flipFraction": 0.00011,
       "pass": true
     }
   }

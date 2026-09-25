@@ -1,6 +1,6 @@
 ---
 name: vehicle
-description: "Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. Generates consistent all-angle reference views with an image model (or finds reference photos on the web when no image model is available), models a panelled sheet-metal body with flush glass, lamps, intakes, wheels, a furnished cabin and an engine, rigs doors / bonnet / engine cover / wheels / steering / seats, proves every opening part swings clear, adds crumple-zone morph targets, and critiques the model against every reference view (solved cameras, silhouette IoU, per-station corrections) until the silhouettes match. Use when asked to make, model, rig, or improve a car, truck, van, or any wheeled vehicle in Blender."
+description: "Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. Generates consistent all-angle reference views with an image model (or finds reference photos on the web when no image model is available), hand-shapes the body as a mirrored all-quad subdivision cage (through Blender MCP or headless; never with an AI 3D generator), cuts it into a panelled sheet-metal body with flush glass, lamps, intakes, wheels, a furnished cabin and an engine, rigs doors / bonnet / engine cover / wheels / steering / seats, proves every opening part swings clear, adds crumple-zone morph targets, and critiques the model against every reference view (solved cameras, silhouette IoU, per-station corrections) until the silhouettes match. Use when asked to make, model, rig, or improve a car, truck, van, or any wheeled vehicle in Blender."
 ---
 
 # vehicle
@@ -8,6 +8,11 @@ description: "Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in
 A reference-to-rig pipeline for one vehicle. Every step leaves a file behind, so a run can
 stop and resume, and every claim ("1:1", "doors open", "crash-ready") is backed by a check
 that can fail.
+
+**Never use an AI 3D generator (Tripo, Hunyuan3D, Hyper3D Rodin, or any other) for a vehicle or
+any part of one.** Their meshes are triangle soup without edge loops: they cannot be cut into
+panels, hinged, rigged or crumpled. The body is a cage shaped by hand (section 5); wheels, lamps,
+cabin and engine are built by the scripts here.
 
 Resolve `<skill>` to the directory holding this file. Work in a run directory `runs/<id>/`
 in the user's project (never inside this skill). Reference photos of real products are private:
@@ -19,15 +24,18 @@ runs/<id>/spec.json        real dimensions                          step 1
 <refs>/views.json + images reference views (private)                step 2
 runs/<id>/curves.json      body feature curves                      step 4
 runs/<id>/parts.json       openings, lamps, intakes, panels, cabin  step 4
-runs/<id>/<id>.blend       the rigged model                         step 5
-runs/<id>/checks/*.json    doors, crush, build, cameras, rounds     steps 5-7
+runs/<id>/cage.json        the hand-shaped body cage                step 5
+runs/<id>/cage/            cage checkpoints and reflection checks   step 5
+runs/<id>/<id>.blend       the rigged model                         step 6
+runs/<id>/checks/*.json    doors, crush, build, cameras, rounds     steps 6-7
 runs/<id>/<id>.glb         the export                               step 8
 runs/<id>/renders/*.png    beauty and feature renders               step 8
 ```
 
 Requirements: Blender 4.2+ (tested on 5.1), Python 3.9+ with numpy, opencv-python and scipy
 for the critique. Blender MCP is optional: every Blender step is a script that runs the same
-headless (`blender -b -P`) or inside a live session via `execute_blender_code`.
+headless (`blender -b -P`) or inside a live session via `execute_blender_code`. Hand-shaping
+(section 5) is best done live through Blender MCP; every check it needs also runs headless.
 
 ## 1. Spec: the numbers that make it 1:1
 
@@ -69,10 +77,28 @@ visibly tilts the solved camera.
 
 ## 4. Describe the car
 
-`runs/<id>/curves.json` (template `<skill>/templates/curves.json`): the body is a loft of
-monotone curves along the car (y from -length/2 at the nose): `top` (centre line), `bottom`,
-`rail` (drop from top to roof rail / bonnet edge; negative = fenders above the bonnet), `belt`
-(glass line), `crease` (shoulder line), `halfW`, `beltW`, `railW`, plus nose/tail plan rounding.
+`runs/<id>/curves.json` (template `<skill>/templates/curves.json`) describes the body by its
+design lines, monotone curves along the car (y from -length/2 at the nose): `top` (centre line),
+`bottom`, `rail` (drop from top to roof rail / bonnet edge; negative = fenders above the bonnet),
+`belt` (glass line), `crease` (shoulder line), `halfW`, `beltW`, `railW`, `tuck`, `floorIn`, plus
+nose/tail plan rounding (and `*Low` variants for a wedge nose that is square at bumper level).
+
+The body surface is built the way automotive modellers build it: a sparse quad cage whose loops
+follow those design lines, smoothed by subdivision (`"surface": "cage"`). On a regular quad grid
+Catmull-Clark converges to a bicubic B-spline, which `body.py` evaluates directly from
+`cageStations` control rings (24-30) of `cagePerKey` points between section keys; the shoulder
+crease is kept crisp by a duplicated control point (`creaseCopies`), the B-spline equivalent of a
+support loop. Rules from the trade that the pipeline follows:
+- as few control points as possible: 10-12 per curve, 24-30 stations. Dense control points buy
+  silhouette IoU with bumps;
+- measure design lines from the photos (`critique.py trace`: pixels back-projected onto a plane
+  through the solved camera) instead of guessing them. The belt, window outline and quarter glass
+  of the example came from traces;
+- judge surfaces by reflections, not silhouettes: the zebra check below.
+
+The old per-section loft (no `surface` key) still builds, for comparison. These curves are the
+starting point: they carry the proportions the critique can fit, and they seed the hand-shaped
+cage of section 5, which is where the car gets its real shape.
 
 `runs/<id>/parts.json` (template `<skill>/templates/parts.json`) lists, in the car's frame
 (+X left, -Y forward, +Z up; left-side parts with `"mirror": true` build the right side too):
@@ -86,6 +112,10 @@ monotone curves along the car (y from -length/2 at the nose): `top` (centre line
 | `mirrors`, `exhaust`, `blades` | bolt-ons | |
 | `cabin`, `engine` | interior and engine bay dimensions, cooling fans | |
 
+Fixed glass gets a black rubber surround (`seal`, `sealRadius`); glass that rides a door is
+frameless unless it sets `"seal": true`. A surround is cut back wherever a moving part (skin,
+glass, mirror, door card) would sweep into it, as a real one stops at the shut line.
+
 Outlines are 2D polygons in a plane (`YZ` side, `XZ` front/rear, `XY` top) or `auto` outlines
 traced from the body's own curves: `greenhouse` (side glass), `windscreen`, `belt` (doors).
 Two rules the checks will enforce:
@@ -93,7 +123,90 @@ Two rules the checks will enforce:
   just below the belt (`frontDrop`), and rises into the glass opening only where the glass starts;
 - door glass must start behind the door's rising edge; put a fixed sail glass ahead of it.
 
-## 5. Build and rig
+## 5. Hand-shape the body
+
+The professional method, and the one this skill follows, is summarised in
+`<skill>/reference/hand-shaping.md` with its rules, numbers and sources. It works like this:
+
+- Shape one sparse, mirrored, all-quad cage under Subdivision Surface, row by row, against the
+  spec box and the references.
+- Judge it only by reflections.
+- Never cut the cage. The build cuts shut lines and openings into the dense subdivided shell, so
+  cuts cannot pinch the paint.
+
+`<skill>/blender/cage_kit.py` provides every step. In a Blender MCP session, run each step with
+`execute_blender_code` as `import sys; sys.path.insert(0, '<skill>/blender'); import cage_kit as K`
+followed by one call. Headless, run the same calls in a script with `blender -b --factory-startup -P`.
+
+1. **Set up (idempotent).** `K.setup(RUN)` does all of this:
+   - sets metric units;
+   - adds `REF_box`, the spec envelope, and `REF_wheel_*` circles at the axle centres, all in an
+     unselectable `REF` collection;
+   - mounts the blueprint underlays if `blueprint.json` exists;
+   - adds the fixed check cameras `CAM_side|front|rear|top` (ortho) and `CAM_front34|rear34|eye`;
+   - adds a `CAM_photo_<view>` for every photo camera the critique has solved. These carry no
+     background image, so no `.blend` ever holds a private photo path.
+2. **Seed the cage.** `K.cage_from_curves(RUN)` builds the x ≥ 0 half cage from `curves.json`:
+   - one row per station (`cageStations`, default 24, evenly spaced);
+   - `cageCols` columns (default 24) round the half section, spread by arc length and curvature;
+   - every design-line key (floor edge, rocker, flank, shoulder, belt, rail, roof) as a column;
+   - the end caps as quad grids, the shoulder creased at 0.8;
+   - Mirror (clip, merge) and Subdivision (limit surface, creases) modifiers.
+
+   A subdivision surface shrinks inside its cage, so the seed is refitted until the subdivided
+   surface passes through the design points. Expect a miss of about 0.01 mm at the median and
+   a few mm at worst. To continue an earlier session, use `K.load_cage(RUN)` (from `cage.json`)
+   or `K.restore(RUN, -1)` instead.
+3. **Shape: one small step per call.**
+   - Save first with `K.checkpoint(RUN, 'tag')`. `K.restore(RUN, 'tag')` is the undo; MCP undo
+     is not reliable.
+   - Edit with `K.edit_cage(lambda bm: ...)`, working on rows (stations, nose = 0) and columns
+     (round the section, bottom centre = 0), never on vertex indices:
+     - `K.move(bm, rows=, cols=, dx=, dy=, dz=, falloff_rows=, scale_x=)` moves a block, fading
+       over neighbouring rows;
+     - `K.space`, `K.relax` and `K.circle` on `K.row_loop(bm, r)`, `K.col_loop(bm, c)` or
+       `K.loop_verts(edge)` stand in for LoopTools.
+   - `K.insert_loop('row' | 'col', i)` adds a loop the way a loop cut does, then refits so the
+     surface does not move.
+   - `K.fit_surface(targets={index: point})` makes the surface pass through measured points,
+     for example a traced belt line.
+   - Work in the professional order: the proportions and silhouette against the box and photos
+     first, then the arches, shoulder and belt, then the nose, tail and bumpers, and the
+     greenhouse last. Edit whole rows. A hood or roof half needs only 6–8 faces.
+4. **Measure.** Every call ends with `K.metrics(RUN)`, which prints JSON:
+   - non-quads (keep at 0);
+   - poles on curved areas (`curvedPoles`: move them to flat or hidden areas);
+   - `seamDrift` and `nonManifold` (keep at 0);
+   - `maxEdgeRatio` and where it is (even spacing);
+   - `specError_mm` (width, length, roof height against the spec);
+   - fairness of the subdivided surface.
+5. **Look.**
+   - `K.render_checks(RUN, tag)` renders MatCap views (`check_reflection_horizontal/vertical`,
+     which follow the camera) and a chrome cage in a world-locked stripe environment, from the
+     fixed cameras. It writes `runs/<id>/cage/checks/<tag>_<view>_<kind>.png`.
+   - `K.photo_overlays(RUN, REFS, tag)` draws the subdivided cage in cyan, with a magenta
+     silhouette, through each solved photo camera onto the photo. It writes to
+     `<refs>/../critique/cage/`, which stays private.
+   - In a live session, call `K.aim_viewport('side')` in the same call as
+     `get_viewport_screenshot`, so each screenshot is comparable with the last.
+   - Read the stripes: a kink or jump means a G0 break, a sharp turn means G1, a bullseye means a
+     pole or bump, and ripples mean uneven spacing.
+6. **Accept.** When the stripes flow and the overlays sit on the car, write the cage with
+   `K.export_cage(RUN)` to `runs/<id>/cage.json`. Then set `curves.json`: `"surface": "mesh"`,
+   `"cage": "cage.json"`, `"subdivLevels": 2`. Level 2 gives a body of about 60k triangles; use 3
+   only for stills. Build (section 6): `checks/build.json` must show `cageOpenEdges: 0`, and the
+   panel, door and crush checks still apply.
+
+The Blender MCP link is fragile: calls time out after 180 s, and `get_scene_info` lists only 10
+objects. So re-fetch objects by name in every call, keep code in files rather than long strings,
+and save state with `checkpoint`, never in the session. Never drive a Blender instance that
+another session is using: use a separate Blender MCP port, or run headless.
+
+With `"surface": "mesh"`, `critique.py fitshape` and `apply`, and `iterate.py`, refuse to run:
+they edit curves, and the curves no longer shape the body. `score` still gates every round. The
+fixes it points at are made in the cage, by hand.
+
+## 6. Build and rig
 
 ```
 blender -b --factory-startup -P <skill>/blender/build.py -- --run runs/<id> --stages model,checks
@@ -101,7 +214,8 @@ blender -b --factory-startup -P <skill>/blender/build.py -- --run runs/<id> --st
 
 (Inside Blender MCP: `import sys; sys.path.insert(0, '<skill>/blender'); import build; build.main(['--run', 'runs/<id>'])`.)
 
-It lofts the body (`body.py`), solidifies it into a 4 mm wall, cuts wells, glass, lamps, intakes
+It lofts the body from the curves (`body.py`), or bakes the hand-shaped cage when `curves.json`
+has `"surface": "mesh"` (`body.build_from_cage`: Mirror, then Subdivision, applied), solidifies it into a 4 mm wall, cuts wells, glass, lamps, intakes
 and panels (`panels.py`), builds wheels (`wheels.py`), cabin (`interior.py`), engine and fans
 (`engine.py`), bolt-ons (`details.py`), materials (`common.py`: clear-coated metallic flake paint,
 transmissive glass, chrome reflectors, emissive lamp elements, brushed and cast metals), and rigs it
@@ -112,13 +226,21 @@ crumple-zone morph targets (`Crush_Front/Rear/Left/Right`).
 Checks written by the build (`checks/build.json` says `BUILD PASS` only when all hold):
 - `door_check.py`: every opening part swept shut -> open in 24 steps: hinge on its panel, moves
   outward/upward from the first step, never intersects anything it did not touch when shut, and
-  returns home. Failures name the part it hits (`clashWith`).
+  returns home. Failures name the part it hits (`clashWith`) and the moving part that hits it (`clashBy`).
 - `crush.py`: no key moves the cabin safety cell more than 1 cm, folds under 1% of faces, and no
   wheel is keyed.
+- `fairness` (in `build.json`): angle between each painted-skin vertex normal and its neighbours'
+  mean (cut edges and real creases excluded), as p50 / p95 / share over 3 degrees. It is the
+  number behind the zebra renders: ripples raise it.
+
+Reflection check: render `zebra_front34`, `zebra_side`, `zebra_top` (paint swapped for a mirror
+under a banded sky). Stripes must flow in smooth, evenly spaced bands across each panel;
+bullseye rings mark a bump, kinks mark a crease the design does not have, jitter marks noise.
+Fix those in the cage (fewer or smoother control points), never in the shader.
 
 A failure is fixed in the model or the rig, never by lowering a threshold.
 
-## 6. Critique until 1:1
+## 7. Critique until 1:1
 
 ```
 python3 <skill>/scripts/critique.py score    runs/<id> --refs DIR --note "what changed"
@@ -139,7 +261,9 @@ their measured pixels. Guards that keep the result a car:
 - a trust region (`--trust`) charges for every metre moved from the design, and a curvature
   penalty charges for lumps; plan-shape scalars live in realistic bounds.
 A silhouette can be matched by a shape that no longer looks like the car. After every fit,
-render `front34`, `rear34`, `front`, `side_left` and look before accepting it.
+render `front34`, `rear34`, `front`, `side_left` and the zebra views, and look before accepting it.
+Use `--densify 11 --smooth-first 3 --smooth-weight 12` with the cage surface: few control points,
+a smooth start, and a curvature penalty strong enough that IoU is never bought with bumps.
 
 Reference hygiene (in `views.json`), each recorded with its reason:
 - `maskFix` add/sub polygons for dark roofs, reflections, parked cars and shadows GrabCut gets
@@ -166,7 +290,7 @@ Gates: IoU >= 0.95 per orthographic view, >= 0.90 per photo view. Then critique 
 beauty renders (surface quality, panel gaps, lamp detail): numbers cannot see a lumpy bumper.
 Plan-width errors need a front, rear or top view; the side view alone only constrains heights.
 
-## 7. Export and render
+## 8. Export and render
 
 ```
 blender -b --factory-startup -P <skill>/blender/build.py -- --run runs/<id> --stages model,checks,export,render

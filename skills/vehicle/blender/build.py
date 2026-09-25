@@ -51,7 +51,12 @@ def model(run, spec, curves, parts, log):
     C.reset_scene()
     mats = C.materials(parts.get('materials'))
     t = time.time()
-    shell = body.build(curves, 'BodyShell', step=parts.get('step', 0.021))
+    if curves.get('surface') == 'mesh':
+        # hand-shaped cage (cage_kit.py through Blender MCP): mirror + subdivide + apply
+        shell = body.build_from_cage(os.path.join(run, curves.get('cage', 'cage.json')), curves.get('subdivLevels', 3))
+        log['cageOpenEdges'] = shell.get('cageOpenEdges')
+    else:
+        shell = body.build(curves, 'BodyShell', step=parts.get('step', 0.021))
     panels.shell(shell, mats, parts.get('wall', 0.004))
     panels.use_body(body.BodySpec(curves))
     liners = panels.arches(shell, parts.get('arches', []), mats)
@@ -91,6 +96,7 @@ def model(run, spec, curves, parts, log):
     for name, skin in skins.items():
         if name.startswith('Door_'):
             extras.setdefault(name, []).extend(interior.door_card('DoorCard' + name[4:], skin, mats))
+    log['sealsTrimmed'] = panels.trim_seals(glass, {n: [sk] + extras.get(n, []) for n, sk in skins.items()})
     ext = (details.exhaust(parts.get('exhaust', {}), mats) + details.blades(parts.get('blades', []), mats)
            + details.spoiler(parts.get('spoiler'), mats))
     wheel_pivots = wheels.build(spec, mats)
@@ -117,7 +123,8 @@ def model(run, spec, curves, parts, log):
     crush.add_keys(exterior, spec, parts.get('crush'))
     log['crushKeyed'] = len(exterior)
     body_ob.data.materials[0] = mats['Paint']
-    return {'pivots': pivots, 'wheels': wheel_pivots, 'exterior': exterior, 'wheel_meshes': wheel_meshes, 'cabin': cab}
+    return {'pivots': pivots, 'wheels': wheel_pivots, 'exterior': exterior, 'wheel_meshes': wheel_meshes, 'cabin': cab,
+            'body': body_ob}
 
 
 def save_blend(path):
@@ -153,6 +160,41 @@ def checks(run, spec, parts, st, log):
     log['crushPass'] = c['pass']
     log['crush'] = c['keys']
     log['silhouetteTris'] = n
+    log['fairness'] = fairness(st.get('body'))
+
+
+def fairness(body, crease_deg=25.0):
+    """Surface fairness of the painted body (the reflection-quality proxy): for each outer-skin
+    vertex, the angle between its normal and its neighbours' mean normal. Ripples raise it; a clean
+    subdivision-style surface keeps it low. Vertices on cut edges or real creases (> crease_deg)
+    are excluded. Returns degrees: p50, p95 and the fraction of vertices over 3 degrees."""
+    import bmesh
+    import math as _m
+    if body is None:
+        return None
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    bm.normal_update()
+    vals = []
+    for v in bm.verts:
+        fs = v.link_faces
+        if not fs or any(f.material_index != 0 for f in fs) or v.is_boundary:
+            continue
+        nb = [e.other_vert(v) for e in v.link_edges]
+        if len(nb) < 3:
+            continue
+        mean = sum((u.normal for u in nb), v.normal * 0)
+        if mean.length < 1e-9:
+            continue
+        a = _m.degrees(v.normal.angle(mean.normalized(), 0.0))
+        if a < crease_deg:
+            vals.append(a)
+    bm.free()
+    if not vals:
+        return None
+    vals.sort()
+    return {'p50Deg': round(vals[len(vals) // 2], 3), 'p95Deg': round(vals[int(len(vals) * 0.95)], 3),
+            'over3Deg': round(sum(1 for x in vals if x > 3.0) / len(vals), 4), 'vertices': len(vals)}
 
 
 def main(argv=None):

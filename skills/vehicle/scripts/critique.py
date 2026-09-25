@@ -12,6 +12,7 @@
     python3 critique.py fitshape <run> [--refs DIR] [--minutes 20] [--joint] [--densify 20] [--start curves.json]
                                                           fit every body-curve control point to all views
                                                           at once (spec length/width/height are hard limits)
+    python3 critique.py trace <run> [--refs DIR]          back-project traced feature lines -> checks/traces.json
     python3 critique.py score <run> [--refs DIR] [--note "what changed"]
                                                           IoU per view, diff sheets, worst regions,
                                                           appends a round to checks/rounds.json
@@ -74,6 +75,10 @@ def args(argv):
         elif argv[i] == '--include-skipped':
             out['includeSkipped'] = True
             i -= 1
+        elif argv[i] == '--smooth-first':
+            out['smoothFirst'] = int(argv[i + 1])
+        elif argv[i] == '--smooth-weight':
+            out['smoothWeight'] = float(argv[i + 1])
         elif argv[i] == '--trust':
             out['trust'] = float(argv[i + 1])
         elif argv[i] == '--start':
@@ -567,6 +572,10 @@ def clamp_spec(cfg, spec):
     clamping control points bounds the whole surface: top, fender/rail peaks (top - rail) and roof
     shoulders (top - crown) <= height; plan half-width <= width / 2."""
     H, HW = spec['height'], spec['width'] / 2
+    if cfg.get('surface') == 'cage':
+        # a B-spline surface sits inside its control points: the fitter checks the evaluated surface
+        # against the envelope, so control points get headroom here instead of a hard cap
+        H, HW = H + 0.06, HW + 0.04
     c = cfg['curves']
     top = {y: v for y, v in c['top']}
     for p in c['top']:
@@ -584,7 +593,7 @@ def clamp_spec(cfg, spec):
             if abs(p[0]) < 5:
                 p[1] = max(p[1], top_at(p[0]) - H)     # peak = top - drop <= H
     for p in c['halfW']:
-        p[1] = min(p[1], HW - 0.003)            # the section spline bulges ~2 mm past its key point
+        p[1] = min(p[1], HW - (0.0 if cfg.get('surface') == 'cage' else 0.003))   # section spline bulge
     for key, lo, hi in (('tuck', 0.0, 0.15), ('floorIn', 0.03, 0.30)):
         for p in c.get(key, []):
             p[1] = min(hi, max(lo, p[1]))
@@ -656,13 +665,25 @@ def fitshape(a, spec, views, cams):
             cur[k] = min(hi, max(lo, cur[k]))
     if a.get('densify'):
         cur = clamp_spec(densify(cur, int(a['densify']), loft), spec)
+    if a.get('smoothFirst'):
+        # iron out the wiggles a previous fit bought IoU with, then let the fit win IoU back under a
+        # curvature penalty measured from this smooth start (the belt line is measured: leave it)
+        for k in FIT_OBSERVED + ('crease', 'crown', 'beltW'):
+            pts = cur['curves'].get(k)
+            if not pts or len(pts) < 5:
+                continue
+            for _ in range(int(a['smoothFirst'])):
+                vals = [p[1] for p in pts]
+                for i in range(1, len(pts) - 1):
+                    pts[i][1] = round(vals[i] + 0.5 * ((vals[i - 1] + vals[i + 1]) / 2 - vals[i]), 4)
+        cur = clamp_spec(cur, spec)
+    rough0 = max(roughness(cur), 1e-6)
+    design = json.loads(json.dumps(cur))            # the trust region is measured from here
     parts = json.load(open(os.path.join(a['run'], 'parts.json')))
     fixed = np.load(os.path.join(a['run'], 'checks', 'model_tris_fixed.npz'))
     fv, ff = fixed['verts'].astype(np.float64), fixed['faces']
     H, HW = spec['height'], spec['width'] / 2
     arches = [(d['x'][0], d['y'], d['z'], d['r']) for d in parts.get('arches', [])]
-    rough0 = max(roughness(cur), 1e-6)
-    design = json.loads(json.dumps(cur))            # the trust region is measured from here
     V = []
     for name, v in views.items():
         if name not in cams:
@@ -735,7 +756,8 @@ def fitshape(a, spec, views, cams):
     def total(ious, pens, cfg=None):
         reg = 0.0
         if cfg is not None:
-            reg = SMOOTH * 0.01 * max(0.0, roughness(cfg) / rough0 - 1.0) + a.get('trust', TRUST) * drift(cfg)
+            reg = a.get('smoothWeight', SMOOTH) * 0.01 * max(0.0, roughness(cfg) / rough0 - 1.0) \
+                + a.get('trust', TRUST) * drift(cfg)
         return float(np.mean(ious) + np.min(ious) - 2 * np.mean(pens)) - reg
 
     PT = body_tris(cur)
@@ -849,6 +871,40 @@ def backup_path(run, rounds):
     return p
 
 
+def backproject(cam, uv, plane_x):
+    """Pixels -> points on the vertical plane x = plane_x (car frame), through a solved camera."""
+    f, _, cx, cy = cam['K']
+    R = np.array(cam['R'])
+    t = np.array(cam['t'])
+    C = -R.T @ t
+    out = []
+    for u, v in uv:
+        d = R.T @ np.array([(u - cx) / f, (v - cy) / f, 1.0])
+        if abs(d[0]) < 1e-9:
+            continue
+        s_ = (plane_x - C[0]) / d[0]
+        if s_ > 0:
+            p = C + s_ * d
+            out.append([round(float(p[1]), 4), round(float(p[2]), 4)])
+    return out
+
+
+def trace(a, views, cams):
+    """views.json "traces": {"<feature>": {"x": plane_x, "px": [[u, v], ...]}} per view, traced on the
+    photo along a feature line (window outline, belt, crease, intake). Each becomes a (y, z) polyline
+    in metres on that plane: the measured version of the lines curves.json and parts.json draw."""
+    out = {}
+    for name, v in views.items():
+        for feat, tr in v.get('traces', {}).items():
+            if name not in cams:
+                continue
+            pts = backproject(cams[name], tr['px'], tr['x'])
+            out.setdefault(feat, {})[name] = {'x': tr['x'], 'yz': pts}
+            print(f"{name:14s} {feat:14s} " + ' '.join(f'({y:+.3f},{z:.3f})' for y, z in pts))
+    json.dump(out, open(os.path.join(a['run'], 'checks', 'traces.json'), 'w'), indent=1)
+    return out
+
+
 def apply_suggestions(a):
     """Shift the 'top' (and optionally 'bottom') curve control points by the damped, smoothed
     per-station corrections from checks/suggest.json. Only edges named in --edges move: the
@@ -881,12 +937,21 @@ def apply_suggestions(a):
     return changes
 
 
+def _hand_cage(run):
+    c = os.path.join(run, 'curves.json')
+    return os.path.exists(c) and json.load(open(c)).get('surface') == 'mesh'
+
+
 def main(argv):
     if len(argv) < 2:
         print(__doc__)
         return 2
     a = args(argv)
     spec = json.load(open(os.path.join(a['run'], 'spec.json')))
+    if a['cmd'] in ('apply', 'fitshape') and _hand_cage(a['run']):
+        print(f"{a['cmd']}: the body is a hand-shaped cage (curves.json \"surface\": \"mesh\"); curve fits would not "
+              'reach it. Score it, then fix the cage by hand (reference/hand-shaping.md).')
+        return 2
     if a['cmd'] == 'apply':
         for edge, moved in apply_suggestions(a).items():
             print(edge, ' '.join(f'{y:+.2f}:{d:+.3f}' for y, d in moved))
@@ -919,6 +984,9 @@ def main(argv):
             print(name, 'focal', cams[name]['focalPx'], 'hfov', cams[name]['hfovDeg'], 'anchor err px',
                   cams[name]['anchorErrPxBeforeRefine'], '->', cams[name]['anchorErrPx'], f'({time.time() - t:.0f}s)')
         json.dump(cams, open(cam_path, 'w'), indent=1)
+        return 0
+    if a['cmd'] == 'trace':
+        trace(a, views, cams)
         return 0
     if a['cmd'] == 'fitshape':
         fitshape(a, spec, views, cams)

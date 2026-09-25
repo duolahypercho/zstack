@@ -245,7 +245,114 @@ def stations(spec, step):
     return sorted(set(round(y, 5) for y in ys if spec.y0 <= y <= spec.y1))
 
 
+# ---------------------------------------------------------------- subdivision-cage surface
+#
+# How automotive modellers get clean reflections: a SPARSE quad cage whose edge loops follow the
+# design lines, smoothed by Catmull-Clark subdivision. On a regular quad grid Catmull-Clark
+# converges to a uniform bicubic B-spline surface, so that is what is evaluated here, directly:
+# sparse control rings (stations along the car x points around the section) -> smooth surface.
+# Few control points = no room for wiggles; a character line stays crisp because its control
+# point is duplicated (the B-spline equivalent of a support loop). Plain Python + numpy, so the
+# Blender build and the critique's fast silhouette use exactly the same surface.
+
+def _bspline_basis(n_ctrl, per_span, closed):
+    """Matrix (samples x n_ctrl) of uniform cubic B-spline weights. Open curves repeat the end
+    control points so the surface reaches them; closed curves wrap."""
+    import numpy as np
+    idx = list(range(n_ctrl))
+    if not closed:
+        idx = [0, 0] + idx + [n_ctrl - 1, n_ctrl - 1]
+        n_seg = len(idx) - 3
+    else:
+        n_seg = n_ctrl
+    rows = []
+    for sgi in range(n_seg):
+        ts = [k / per_span for k in range(per_span)]
+        if not closed and sgi == n_seg - 1:
+            ts.append(1.0)
+        for t in ts:
+            w = [(1 - t) ** 3 / 6, (3 * t ** 3 - 6 * t ** 2 + 4) / 6,
+                 (-3 * t ** 3 + 3 * t ** 2 + 3 * t + 1) / 6, t ** 3 / 6]
+            row = [0.0] * n_ctrl
+            for j in range(4):
+                c = idx[sgi + j] if not closed else (sgi + j - 1) % n_ctrl
+                row[c] += w[j]
+            rows.append(row)
+    return np.array(rows)
+
+
+def cage_stations(spec, n):
+    """Control-station positions: even along the car, denser into the nose and tail plan rounding."""
+    import math as _m
+    ys = []
+    for i in range(n):
+        u = i / (n - 1)
+        # blend of uniform and cosine spacing: 45% of the stations crowd towards the two ends
+        v = 0.55 * u + 0.45 * (0.5 - 0.5 * _m.cos(_m.pi * u))
+        ys.append(spec.y0 + spec.L * v)
+    return ys
+
+
+def cage_ring(spec, y, per_key=2, crease_copies=1):
+    """Half-ring control points (x, z) from the section's key points, with `per_key` points between
+    keys (taken off the section spline) and the shoulder crease duplicated `crease_copies` times."""
+    sec, key_ring = section(spec, y)
+    out = []
+    keys = sorted(key_ring.items())
+    sharp = spec.keys(y)[4][2]
+    for (ki, a), (_, b) in zip(keys, keys[1:]):
+        out.append(sec[a])
+        if ki == 4 and crease_copies:
+            # sharp crease: duplicate the control point (like a support loop); soft: place the extra
+            # points just beside it so every ring keeps the same point count
+            for c in range(crease_copies):
+                out.append(sec[a] if sharp else sec[min(a + c + 1, b - 1)])
+        for j in range(1, per_key + 1):
+            out.append(sec[a + round((b - a) * j / (per_key + 1))])
+    out.append(sec[-1])
+    return out
+
+
+def cage_surface(cfg, per_span_y=6, per_span_r=4):
+    """Evaluate the body surface. Returns rows (list of closed rings of (x, y, z)), right side first
+    then the mirrored left, bottom centre -> top centre -> back down."""
+    import numpy as np
+    spec = BodySpec(cfg)
+    ys = cage_stations(spec, cfg.get('cageStations', 30))
+    rings = []
+    for y in ys:
+        half = cage_ring(spec, y, cfg.get('cagePerKey', 2), cfg.get('creaseCopies', 1))
+        right = [(p[0], p[1]) for p in half]
+        left = [(-p[0], p[1]) for p in half[1:-1]]
+        rings.append(right + list(reversed(left)))
+    R = len(rings[0])
+    P = np.array([[(x, y, z) for x, z in ring] for ring, y in zip(rings, ys)])     # (S, R, 3)
+    By = _bspline_basis(len(ys), per_span_y, closed=False)
+    Br = _bspline_basis(R, per_span_r, closed=True)
+    surf = np.einsum('as,srk,br->abk', By, P, Br)
+    return [[tuple(float(c) for c in p) for p in row] for row in surf]
+
+
 def loft_mesh(cfg, step=0.04):
+    if cfg.get('surface') == 'cage':
+        rows = cage_surface(cfg, per_span_y=3, per_span_r=2)
+        verts, quads, idx = [], [], []
+        for row in rows:
+            idx.append(list(range(len(verts), len(verts) + len(row))))
+            verts += row
+        for a, b in zip(idx, idx[1:]):
+            m = len(a)
+            for j in range(m):
+                quads.append((a[j], b[j], b[(j + 1) % m], a[(j + 1) % m]))
+        for ring in (idx[0], idx[-1]):
+            c = len(verts)
+            verts.append(tuple(sum(verts[i][k] for i in ring) / len(ring) for k in range(3)))
+            quads += [(c, ring[j], ring[(j + 1) % len(ring)], c) for j in range(len(ring))]
+        return verts, quads
+    return _loft_mesh_sections(cfg, step)
+
+
+def _loft_mesh_sections(cfg, step=0.04):
     """Plain-Python loft: (verts, quads) of the outer surface, no end caps. Used by the critique
     to re-rasterise the body thousands of times while it fits the curves to the photos."""
     spec = BodySpec(cfg)
@@ -273,15 +380,21 @@ def build(cfg, name='BodyShell', step=0.021, material=None):
     import bmesh
     import bpy
     spec = BodySpec(cfg)
-    ys = stations(spec, step)
     bm = bmesh.new()
     rows = []
     key_ring = {}
-    for y in ys:
-        sec, key_ring = section(spec, y)
-        right = [bm.verts.new((p.x, y, p.y)) for p in sec]
-        left = [bm.verts.new((-p.x, y, p.y)) for p in sec[1:-1]]
-        rows.append(right + list(reversed(left)))
+    if cfg.get('surface') == 'cage':
+        # dense samples of the smooth cage surface (~2 cm): fine enough for the boolean cuts
+        for row in cage_surface(cfg, per_span_y=cfg.get('samplesY', 9), per_span_r=cfg.get('samplesR', 6)):
+            rows.append([bm.verts.new(p) for p in row])
+        ys = [r[0].co.y for r in rows]
+    else:
+        ys = stations(spec, step)
+        for y in ys:
+            sec, key_ring = section(spec, y)
+            right = [bm.verts.new((p.x, y, p.y)) for p in sec]
+            left = [bm.verts.new((-p.x, y, p.y)) for p in sec[1:-1]]
+            rows.append(right + list(reversed(left)))
     m = len(rows[0])
     for a, b in zip(rows, rows[1:]):
         for j in range(m):
@@ -331,4 +444,54 @@ def build(cfg, name='BodyShell', step=0.021, material=None):
         me.materials.append(material)
     bpy.context.scene.collection.objects.link(ob)
     ob['keyRing'] = {str(k): v for k, v in key_ring.items()}  # ID properties need string keys
+    return ob
+
+
+def build_from_cage(path, levels=3, name='BodyShell'):
+    """Body shell from a hand-shaped half cage (cage.json, written by cage_kit.export_cage):
+    mirrored on X, subdivided (Catmull-Clark, creases honoured), applied, closed. The subdivided
+    shell is dense enough for the boolean cuts that follow, so cutting never alters its curvature."""
+    import json
+    import bmesh
+    import bpy
+    data = json.load(open(path))
+    me = bpy.data.meshes.new(name + '_cage')
+    me.from_pydata([tuple(v) for v in data['verts']], [], [tuple(f) for f in data['faces']])
+    me.update()
+    if data.get('creases'):
+        cr = me.edge_creases_ensure()
+        lookup = {tuple(sorted(e.vertices)): e.index for e in me.edges}
+        vals = [0.0] * len(me.edges)
+        for a, b, w in data['creases']:
+            i = lookup.get(tuple(sorted((a, b))))
+            if i is not None:
+                vals[i] = w
+        cr.data.foreach_set('value', vals)
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    m = ob.modifiers.new('Mirror', 'MIRROR')
+    m.use_axis = (True, False, False)
+    m.use_clip = True
+    m.use_mirror_merge = True
+    m.merge_threshold = 1e-4
+    s = ob.modifiers.new('Subdiv', 'SUBSURF')
+    s.levels = s.render_levels = levels
+    s.quality = 3
+    s.use_limit_surface = True
+    s.use_creases = True
+    dg = bpy.context.evaluated_depsgraph_get()
+    baked = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+    ob.modifiers.clear()
+    ob.data = baked
+    bpy.data.meshes.remove(me)
+    bm = bmesh.new()
+    bm.from_mesh(baked)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    open_edges = sum(1 for e in bm.edges if e.is_boundary)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(baked)
+    bm.free()
+    ob['cageOpenEdges'] = open_edges          # must be 0: a closed shell is required for the cuts
     return ob

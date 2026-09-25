@@ -1,19 +1,23 @@
 {
   "id": "fast-car",
   "blender": "5.1.2",
-  "shell_s": 0.5,
+  "shell_s": 0.4,
   "openings_s": 0.8,
-  "recesses_s": 1.9,
+  "recesses_s": 1.6,
   "panelsMissing": [],
-  "panels_s": 0.8,
+  "panels_s": 0.7,
   "panelsSeparated": [
     "Door_FL",
     "Door_FR",
     "EngineCover",
     "Hood"
   ],
-  "crushKeyed": 149,
-  "triangles": 216258,
+  "sealsTrimmed": {
+    "Glass_Sail_FL_Seal": 313,
+    "Glass_Sail_FR_Seal": 320
+  },
+  "crushKeyed": 152,
+  "triangles": 224560,
   "doors": {
     "Door_FL": true,
     "Door_FR": true,
@@ -27,36 +31,42 @@
     "Crush_Front": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Rear": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Left": {
       "cabinMaxM": 0.0,
       "flippedFaces": 9,
-      "flipFraction": 0.00013,
+      "flipFraction": 0.00012,
       "pass": true
     },
     "Crush_Right": {
       "cabinMaxM": 0.0,
       "flippedFaces": 8,
-      "flipFraction": 0.00012,
+      "flipFraction": 0.00011,
       "pass": true
     }
   },
-  "silhouetteTris": 197298,
+  "silhouetteTris": 205600,
+  "fairness": {
+    "p50Deg": 1.17,
+    "p95Deg": 19.002,
+    "over3Deg": 0.3055,
+    "vertices": 17251
+  },
   "export": {
     "glb": "fast-car.glb",
-    "bytes": 13133768,
-    "triangles": 216258,
+    "bytes": 13513240,
+    "triangles": 224560,
     "reimport": {
-      "objects": 209,
-      "crushKeyedMeshes": 149,
+      "objects": 212,
+      "crushKeyedMeshes": 152,
       "doorsPass": true,
       "pivots": [
         "Door_FL.001",
@@ -66,6 +76,6 @@
       ]
     }
   },
-  "seconds": 113.7,
+  "seconds": 64.7,
   "pass": true
 }
