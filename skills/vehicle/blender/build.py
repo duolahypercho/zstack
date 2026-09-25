@@ -57,6 +57,7 @@ def model(run, spec, curves, parts, log):
         log['cageOpenEdges'] = shell.get('cageOpenEdges')
     else:
         shell = body.build(curves, 'BodyShell', step=parts.get('step', 0.021))
+    log['photoParts'] = panels.resolve_photo_parts(parts, run, shell)
     panels.shell(shell, mats, parts.get('wall', 0.004))
     panels.use_body(body.BodySpec(curves))
     liners = panels.arches(shell, parts.get('arches', []), mats)
@@ -80,6 +81,7 @@ def model(run, spec, curves, parts, log):
     bpy.data.objects.remove(pre_cut, do_unlink=True)
     log['panels_s'] = round(time.time() - t, 1)
     log['panelsSeparated'] = sorted(skins)
+    log['paintZones'] = panels.paint_zones([body_ob] + list(skins.values()), parts.get('paintZones', []), mats)
     # extras that ride with each panel
     extras = {}
     for g in glass.values():

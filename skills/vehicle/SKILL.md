@@ -118,6 +118,27 @@ glass, mirror, door card) would sweep into it, as a real one stops at the shut l
 
 Outlines are 2D polygons in a plane (`YZ` side, `XZ` front/rear, `XY` top) or `auto` outlines
 traced from the body's own curves: `greenhouse` (side glass), `windscreen`, `belt` (doors).
+
+**Photo-traced outlines.** A lamp, intake or grille can instead be traced on a reference photo
+whose camera the critique has solved:
+
+```json
+"photo": {"view": "front_right", "px": [[905, 622], [1000, 630], ...], "flipX": true}
+```
+
+This replaces `poly` and `range`. At build time each pixel is ray-cast through the camera onto
+the body, so the part lands where the photo shows it. The cut is a thin shell along the view rays
+(`depth`: 0.15 m in front of the surface, 0.25 m behind, stopped where each ray leaves the body),
+so it cannot slice whatever lies behind a sloped lamp. `flipX` mirrors a part traced on the car's
+right side into the left-side definition, so it can carry `"mirror": true`. Check it by symmetry:
+the mirrored twin must land on the other side's feature in the same photo; if it misses, the camera
+or the body there is wrong. Trace from zoomed, gridded crops, and never commit the photo itself.
+
+Two-tone paint: `materials` overrides any palette entry (e.g. `"Paint": {"color": [0.78, 0.79,
+0.78], "metallic": 0.05}` for a solid white). `paintZones` gives painted-skin faces inside a prism
+(same `plane` / `poly` / `range` / `mirror` as any part) another material, such as `Paint_Accent`
+for a gloss black roof or pillars.
+
 Two rules the checks will enforce:
 - a shut line must cross the wall, not graze it: ahead of the side glass a door's top edge runs
   just below the belt (`frontDrop`), and rises into the glass opening only where the glass starts;
@@ -137,6 +158,24 @@ The professional method, and the one this skill follows, is summarised in
 `<skill>/blender/cage_kit.py` provides every step. In a Blender MCP session, run each step with
 `execute_blender_code` as `import sys; sys.path.insert(0, '<skill>/blender'); import cage_kit as K`
 followed by one call. Headless, run the same calls in a script with `blender -b --factory-startup -P`.
+
+Keep every edit as a small op file (`runs/<id>/ops/NN-what.py`), with a comment saying which
+reference it answers. Then apply it with one round:
+
+```
+blender -b --factory-startup -P <skill>/blender/cage_round.py -- --run runs/<id> --tag r07 \
+        --ops ops/07-crest-over-front-wheel.py --refs DIR
+```
+
+Each round loads `cage.json`, applies the ops, and then:
+- prints the metrics;
+- exports and checkpoints the cage;
+- renders the photo overlays and stripe checks;
+- appends the ops to `cage_ops.json`.
+
+`--replay` regenerates the accepted cage from `curves.json` plus that list, so the hand-shaping
+stays reviewable and reproducible. The example's ten ops replay to within 1 µm. After changing
+the curves (proportions), `--replay` re-applies the hand edits on the new seed.
 
 1. **Set up (idempotent).** `K.setup(RUN)` does all of this:
    - sets metric units;
@@ -170,6 +209,14 @@ followed by one call. Headless, run the same calls in a script with `blender -b 
      surface does not move.
    - `K.fit_surface(targets={index: point})` makes the surface pass through measured points,
      for example a traced belt line.
+   - `K.project_pixels(RUN, view, px, plane=('x', 0.0))` turns photo pixels into 3D points
+     through a solved camera: on a plane (the centre line, a flank), or, with `plane=None`, on
+     the current body.
+   - `K.pull(targets, radius=0.18)` then bends the surface through those points with a smooth
+     falloff. It is proportional editing driven by measurements.
+   - `K.fair(bm, rows=range(1, 23))` is Taubin smoothing. It removes the ripples the seed
+     inherits from the curve fit without shrinking the body. Leave the end caps out, or the
+     length grows, and re-score afterwards.
    - Work in the professional order: the proportions and silhouette against the box and photos
      first, then the arches, shoulder and belt, then the nose, tail and bumpers, and the
      greenhouse last. Edit whole rows. A hood or roof half needs only 6–8 faces.
@@ -205,6 +252,22 @@ another session is using: use a separate Blender MCP port, or run headless.
 With `"surface": "mesh"`, `critique.py fitshape` and `apply`, and `iterate.py`, refuse to run:
 they edit curves, and the curves no longer shape the body. `score` still gates every round. The
 fixes it points at are made in the cage, by hand.
+
+What the example's hand-shaping taught:
+- **Measure before moving.** Back-project points you are sure of (the emblem and the grille on
+  the centre plane, the A-pillar base on a flank plane). On the example they showed a vertical
+  nose face, a hood 10–20 cm lower than the curve fit had it, and a far larger windscreen.
+  Silhouettes cannot see any of those.
+- **Treat solved cameras as uncertain.** Two photos can disagree about the same fender, and a
+  symmetric body cannot satisfy both. When they do, split the difference instead of chasing one
+  view.
+- **Re-solving cameras.** After a large reshape, re-solve a camera once with `critique.py fit
+  --views <view>`. Keep it only if the full-resolution `score` improves, and prefer evidence that
+  does not use the silhouette, such as a mirrored feature landing on its twin. Record which
+  cameras were re-solved.
+- **Fix reference errors, not the gate.** A mask that counts ground shadow as car is a reference
+  error: fix it with a `maskFix` `sub` polygon and write down the reason. Then re-score the
+  previous version with the same mask, so the comparison stays fair.
 
 ## 6. Build and rig
 

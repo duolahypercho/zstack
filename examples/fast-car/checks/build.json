@@ -1,8 +1,27 @@
 {
   "id": "fast-car",
   "blender": "5.1.2",
+  "cageOpenEdges": 0,
+  "photoParts": {
+    "Lamp_Head_L": {
+      "hits": 13,
+      "misses": 0
+    },
+    "Intake_Side_L": {
+      "hits": 20,
+      "misses": 0
+    },
+    "Intake_Front_L": {
+      "hits": 15,
+      "misses": 0
+    },
+    "Grille_Front": {
+      "hits": 12,
+      "misses": 1
+    }
+  },
   "shell_s": 0.4,
-  "openings_s": 0.8,
+  "openings_s": 1.0,
   "recesses_s": 1.6,
   "panelsMissing": [],
   "panels_s": 0.7,
@@ -12,12 +31,18 @@
     "EngineCover",
     "Hood"
   ],
+  "paintZones": {
+    "Roof": 1150,
+    "APillar_L": 229,
+    "APillar_R": 229
+  },
   "sealsTrimmed": {
-    "Glass_Sail_FL_Seal": 313,
-    "Glass_Sail_FR_Seal": 320
+    "Glass_Windscreen_Seal": 32,
+    "Glass_Sail_FL_Seal": 115,
+    "Glass_Sail_FR_Seal": 121
   },
   "crushKeyed": 152,
-  "triangles": 224560,
+  "triangles": 212824,
   "doors": {
     "Door_FL": true,
     "Door_FR": true,
@@ -30,40 +55,40 @@
   "crush": {
     "Crush_Front": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 9,
-      "flipFraction": 0.00012,
+      "flippedFaces": 11,
+      "flipFraction": 0.00016,
       "pass": true
     },
     "Crush_Rear": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 9,
-      "flipFraction": 0.00012,
+      "flippedFaces": 3,
+      "flipFraction": 4e-05,
       "pass": true
     },
     "Crush_Left": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 9,
-      "flipFraction": 0.00012,
+      "flippedFaces": 11,
+      "flipFraction": 0.00016,
       "pass": true
     },
     "Crush_Right": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 8,
-      "flipFraction": 0.00011,
+      "flippedFaces": 15,
+      "flipFraction": 0.00022,
       "pass": true
     }
   },
-  "silhouetteTris": 205600,
+  "silhouetteTris": 193864,
   "fairness": {
-    "p50Deg": 1.17,
-    "p95Deg": 19.002,
-    "over3Deg": 0.3055,
-    "vertices": 17251
+    "p50Deg": 0.289,
+    "p95Deg": 16.933,
+    "over3Deg": 0.2116,
+    "vertices": 15550
   },
   "export": {
     "glb": "fast-car.glb",
-    "bytes": 13513240,
-    "triangles": 224560,
+    "bytes": 12368312,
+    "triangles": 212824,
     "reimport": {
       "objects": 212,
       "crushKeyedMeshes": 152,
@@ -76,6 +101,6 @@
       ]
     }
   },
-  "seconds": 64.7,
+  "seconds": 79.8,
   "pass": true
 }

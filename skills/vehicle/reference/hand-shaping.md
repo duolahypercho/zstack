@@ -75,6 +75,13 @@ Fairing is mostly done by hand. Smooth Vertices and Laplacian Smooth shrink a sp
 pull it off the silhouette. The kit's `relax`, `space` and `circle` stand in for the LoopTools
 tools, which are no longer bundled with Blender from 4.2 onwards.
 
+When the whole cage needs fairing (a seed refitted through slightly rippled design points
+carries those ripples into the paint), use `fair`: Taubin smoothing, a positive step toward the
+neighbour mean followed by a slightly larger negative step, which removes lumps without the
+shrinkage of plain Laplacian smoothing. Leave the end caps out so the length holds, and re-score
+the silhouettes afterwards. On the example, eight iterations over the body rows cut the built
+body's median normal deviation from 0.40° to 0.29° (cage p95 2.1° to 1.9°) at no IoU cost.
+
 ## Driving Blender through MCP
 
 The common server (ahujasid/blender-mcp) is a remote Python prompt, not a transactional API:

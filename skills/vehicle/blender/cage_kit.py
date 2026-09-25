@@ -527,6 +527,31 @@ def relax(vs, iterations=3, factor=0.5):
             vs[i].co = pts[i] + factor * ((pts[i - 1] + pts[i + 1]) / 2 - pts[i])
 
 
+def fair(bm, rows=None, cols=None, iterations=8, lam=0.5, mu=-0.53, keep_cols=()):
+    """Fair the cage: Taubin smoothing (a lambda step toward the neighbour mean, then a slightly
+    larger negative mu step) removes lumps without the shrinkage of plain Laplacian smoothing.
+    Neighbours are the edge-connected cage vertices; a vertex on the mirror seam also counts the
+    mirror images of its neighbours and stays on x = 0. Columns in keep_cols (a crisp design line)
+    are left where they are. Re-check silhouettes afterwards: fairing trades shape for smoothness."""
+    lc = bm.verts.layers.int.get('cage_col')
+    vs = [v for v in verts(bm, rows, cols) if not (lc and v[lc] in keep_cols)]
+    for _ in range(iterations):
+        for f in (lam, mu):
+            new = {}
+            for v in vs:
+                nb = [e.other_vert(v).co for e in v.link_edges]
+                if abs(v.co.x) < SEAM_TOL:
+                    nb += [Vector((-c.x, c.y, c.z)) for c in nb if abs(c.x) >= SEAM_TOL]
+                if not nb:
+                    continue
+                avg = sum(nb, Vector()) / len(nb)
+                new[v] = v.co + (avg - v.co) * f
+            for v, co in new.items():
+                if abs(v.co.x) < SEAM_TOL or co.x < 0:
+                    co.x = 0.0
+                v.co = co
+
+
 def circle(vs):
     """LoopTools Circle: fit a plane and radius to a closed ring, place vertices at equal angles."""
     c = sum((v.co for v in vs), Vector()) / len(vs)
@@ -660,6 +685,82 @@ def insert_loop(kind, index, name=CAGE, keep_shape=True):
         fit_surface(name, targets=targets, iters=8)
     print(json.dumps({'insert_loop': kind, 'after': index, 'newVerts': len(added)}))
     return len(added)
+
+
+def pull(targets, radius=0.18, iters=8, name=CAGE, damping=0.8, verbose=True):
+    """Proportional editing driven by measurements: move the cage so the subdivided surface passes
+    through `targets` (world points, e.g. from project_pixels), with a smooth cosine falloff of
+    `radius` metres around each target so the surface bends as a panel, not as a pin.
+    Only targets on the modelled half (x >= 0) are used; mirror a right-side measurement with
+    x -> -x first. Returns the remaining miss in mm (p50, max)."""
+    ob = bpy.data.objects[name]
+    me = ob.data
+    pts = [Vector(t) for t in targets if t[0] >= -1e-6]
+    res = None
+    for it in range(iters + 1):
+        dg = bpy.context.evaluated_depsgraph_get()
+        tree = BVHTree.FromObject(ob, dg)
+        hits = []
+        for t in pts:
+            loc, _, _, _ = tree.find_nearest(t)
+            if loc is not None:
+                hits.append((loc, t - loc))
+        miss = sorted(d.length for _, d in hits)
+        res = {'p50_mm': round(1000 * miss[len(miss) // 2], 1), 'max_mm': round(1000 * miss[-1], 1)} if miss else None
+        if it == iters or not miss or miss[-1] < 0.001:
+            break
+        for v in me.vertices:
+            acc, wsum = Vector(), 0.0
+            for loc, d in hits:
+                r = (v.co - loc).length
+                if r < radius:
+                    w = 0.5 * (1 + math.cos(math.pi * r / radius))
+                    acc += d * w
+                    wsum += w
+            if wsum > 0:
+                co = v.co + acc * (damping / max(1.0, wsum))
+                if abs(v.co.x) < SEAM_TOL or co.x < 0:
+                    co.x = 0.0
+                v.co = co
+        me.update()
+    if verbose:
+        print(json.dumps({'pull': name, 'targets': len(pts), 'iterations': it, 'miss': res}))
+    return res
+
+
+def project_pixels(run, view, px, plane=None, name=CAGE):
+    """Photo pixels -> 3D points through the solved camera of `view` (checks/cameras.json).
+    plane=('x', value) intersects each ray with the plane x = value (e.g. ('x', 0.0) for the centre
+    line, ('x', -0.75) for a line on the car's right flank); plane=None hits the current subdivided
+    cage surface instead (for outlines that lie on the body: lamps, intakes, shut lines).
+    Returns a list of (x, y, z) in the car frame; rays that miss are dropped."""
+    cam = json.load(open(os.path.join(run, 'checks', 'cameras.json')))[view]
+    fx, fy, cx, cy = cam['K']
+    R = [Vector(r) for r in cam['R']]
+    Rt = [Vector((R[0][i], R[1][i], R[2][i])) for i in range(3)]      # rows of R^T
+    t = Vector(cam['t'])
+    C = -Vector((Rt[0].dot(t), Rt[1].dot(t), Rt[2].dot(t)))
+    tree = None
+    if plane is None:
+        tree = BVHTree.FromObject(bpy.data.objects[name], bpy.context.evaluated_depsgraph_get())
+    out = []
+    for u, v in px:
+        dc = Vector(((u - cx) / fx, (v - cy) / fy, 1.0))
+        d = Vector((Rt[0].dot(dc), Rt[1].dot(dc), Rt[2].dot(dc))).normalized()
+        if plane is None:
+            loc, _, _, _ = tree.ray_cast(C, d)
+            if loc is None:
+                # the mirrored half is not in the evaluated object only if Mirror is off; try x -> -x
+                continue
+            out.append(tuple(round(c, 4) for c in loc))
+        else:
+            ax = 'xyz'.index(plane[0])
+            if abs(d[ax]) < 1e-9:
+                continue
+            s_ = (plane[1] - C[ax]) / d[ax]
+            if s_ > 0:
+                out.append(tuple(round(c, 4) for c in C + d * s_))
+    return out
 
 
 # ---------------------------------------------------------------- measuring

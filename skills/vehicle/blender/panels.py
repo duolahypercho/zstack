@@ -47,6 +47,8 @@ def mirrored(part):
         q['poly'] = [(-u, v) for u, v in part['poly']]
     if part.get('auto'):
         q.pop('poly', None)
+    if part.get('photoShell'):
+        q['photoShell'] = {k: [(-x, y, z) for x, y, z in v] for k, v in part['photoShell'].items()}
     q['mirror'] = False
     q['side'] = -1
     return q
@@ -111,6 +113,75 @@ def _auto(part):
     raise ValueError('unknown auto outline ' + kind)
 
 
+def resolve_photo_parts(parts, run, body):
+    """Outlines traced on a reference photo instead of drawn in a plane: a part with
+    "photo": {"view": <solved camera in checks/cameras.json>, "px": [[u, v], ...], "flipX": bool}
+    gets its "poly" (and, unless given, its "range") here. Each pixel is ray-cast through the solved
+    camera onto the body shell; the hits, projected on the part's plane, are the outline, so a lamp
+    or intake lands where the photo shows it. A ray that misses the body (the shell is not the car
+    yet) meets the plane through the median hit instead. flipX mirrors the traced side, so a part
+    traced on the car's right side can be defined as the left part with "mirror": true.
+    Mutates `parts` (every section of parts.json); returns {part: {'hits', 'misses'}}."""
+    import json
+    import os
+    path = os.path.join(run, 'checks', 'cameras.json')
+    todo = [q for sec in parts.values() if isinstance(sec, list) for q in sec if isinstance(q, dict) and q.get('photo')]
+    if not todo:
+        return {}
+    if not os.path.exists(path):
+        raise RuntimeError('photo-traced parts need checks/cameras.json (critique.py fit)')
+    cams = json.load(open(path))
+    src = C.duplicate(body, '_bvh_photo')
+    bvh = BVHTree.FromObject(src, bpy.context.evaluated_depsgraph_get())
+    bpy.data.objects.remove(src, do_unlink=True)
+    report = {}
+    for q in todo:
+        ph = q['photo']
+        cam = cams[ph['view']]
+        fx, fy, cx, cy = cam['K']
+        R = [Vector(r) for r in cam['R']]
+        Rt = [Vector((R[0][i], R[1][i], R[2][i])) for i in range(3)]
+        t = Vector(cam['t'])
+        eye = -Vector((Rt[0].dot(t), Rt[1].dot(t), Rt[2].dot(t)))
+        rays, hits = [], []
+        for u, v in ph['px']:
+            dc = Vector(((u - cx) / fx, (v - cy) / fy, 1.0))
+            d = Vector((Rt[0].dot(dc), Rt[1].dot(dc), Rt[2].dot(dc))).normalized()
+            loc = bvh.ray_cast(eye, d, 50.0)[0]
+            rays.append(d)
+            hits.append(loc)
+        a, b, c = C.AXES[q['plane']]
+        found = [h for h in hits if h is not None]
+        if len(found) < 3:
+            raise RuntimeError(f"{q['name']}: fewer than 3 traced pixels hit the body")
+        mid = sorted(h[c] for h in found)[len(found) // 2]
+        pts, near, far = [], [], []
+        before, behind = ph.get('depth', [0.15, 0.25])       # metres along the ray, in front of / behind the hit
+        flip = (lambda w: Vector((-w.x, w.y, w.z))) if ph.get('flipX') else (lambda w: w)   # noqa: E731
+        for h, d in zip(hits, rays):
+            if h is None and abs(d[c]) > 1e-6:
+                h = eye + d * ((mid - eye[c]) / d[c])
+            if h is not None:
+                # stop the shell just short of where this ray leaves the body again, so a ray
+                # through a fender bump does not carry the cut into the next surface behind it
+                back = behind
+                exit_ = bvh.ray_cast(h + d * 0.003, d, behind)[0]
+                if exit_ is not None:
+                    back = max(0.02, (exit_ - h).length - 0.01)
+                pts.append(flip(h))
+                near.append(tuple(round(x, 4) for x in flip(h - d * before)))
+                far.append(tuple(round(x, 4) for x in flip(h + d * back)))
+        q['poly'] = [[round(p[a], 4), round(p[b], 4)] for p in pts]
+        # the cut itself is a thin shell along the view rays around the traced surface: a planar
+        # prism through a sloped lamp would also slice whatever lies behind it at the same height
+        q['photoShell'] = {'near': near, 'far': far}
+        if 'range' not in q:
+            m = ph.get('margin', 0.08)
+            q['range'] = [round(min(p[c] for p in pts) - m, 4), round(max(p[c] for p in pts) + m, 4)]
+        report[q['name']] = {'hits': len(found), 'misses': len(hits) - len(found)}
+    return report
+
+
 def poly_of(part):
     pts = _auto(part) if part.get('auto') else part['poly']
     r = part.get('round', 0.0)
@@ -134,6 +205,8 @@ def shell(body, mats, wall=0.004):
 
 
 def _cutter(part, gap=None):
+    if part.get('photoShell') and not gap:
+        return C.shell_between(part['name'] + '_cut', part['photoShell']['near'], part['photoShell']['far'])
     lo, hi = part['range']
     poly = poly_of(part)
     if gap:
@@ -469,6 +542,36 @@ def cut_panels(body, parts, gap=0.004, sliver=60):
         print('WARNING: panels that did not separate (outline not closed on the wall?):', missing)
     main['panelsMissing'] = missing
     return main, skins
+
+
+def paint_zones(objs, zones, mats):
+    """Two-tone paint: faces of the painted skin (material slot 0) whose centre lies inside a
+    zone's prism (plane, poly, range and mirror as for any part) take the zone's "material", e.g.
+    a contrast roof or pillars in Paint_Accent. Returns {zone: faces changed}."""
+    out = {}
+    for z in expand(zones):
+        mat = mats[z.get('material', 'Paint_Accent')]
+        a, b, c = C.AXES[z['plane']]
+        lo, hi = z['range']
+        poly = poly_of(z)
+        n = 0
+        for ob in objs:
+            me = ob.data
+            names = [m.name if m else None for m in me.materials]
+            if mat.name not in names:
+                me.materials.append(mat)
+                names.append(mat.name)
+            slot = names.index(mat.name)
+            mw = ob.matrix_world
+            for f in me.polygons:
+                if f.material_index != 0:
+                    continue
+                co = mw @ f.center
+                if lo <= co[c] <= hi and C.point_in_poly((co[a], co[b]), poly):
+                    f.material_index = slot
+                    n += 1
+        out[z['name']] = n
+    return out
 
 
 def _join(dst, src):

@@ -1,0 +1,15 @@
+{
+ "note": "curves.json seeds the cage; these ops, in order, reshape it (cage_round.py --replay)",
+ "ops": [
+  "ops/01-fender-crest-over-cowl-and-nose-face.py",
+  "ops/02-lower-nose-corners-swept-up.py",
+  "ops/03-front-deck-crest.py",
+  "ops/04-crest-split-and-a-pillar-base.py",
+  "ops/05-rear-lower-edge.py",
+  "ops/06-upper-nose-face-back.py",
+  "ops/07-crest-over-front-wheel.py",
+  "ops/08-fender-pods-reach-inboard.py",
+  "ops/09-fair-body-rows.py",
+  "ops/10-hold-spec-length.py"
+ ]
+}

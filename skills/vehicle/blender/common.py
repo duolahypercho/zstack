@@ -121,6 +121,9 @@ PALETTE = {
     # not plastic (metallic base) and not chrome (rough base + separate coat lobe).
     'Paint': ({'color': (0.30, 0.315, 0.325), 'metallic': 0.62, 'rough': 0.40, 'coat': 1.0,
                'coat_rough': 0.03, 'coat_ior': 1.5}, 'flake'),
+    # Second body colour for two-tone schemes (a contrast roof or pillars; parts.json paintZones)
+    'Paint_Accent': ({'color': (0.012, 0.012, 0.013), 'metallic': 0.35, 'rough': 0.32, 'coat': 1.0,
+                      'coat_rough': 0.03, 'coat_ior': 1.5}, 'flake'),
     'Glass': ({'color': (0.52, 0.56, 0.57), 'metallic': 0.0, 'rough': 0.0, 'ior': 1.52,
                'transmission': 1.0}, 'glass'),                      # light green-grey automotive tint
     'GlassTint': ({'color': (0.14, 0.15, 0.16), 'rough': 0.0, 'ior': 1.52, 'transmission': 1.0}, 'glass'),
@@ -379,6 +382,24 @@ def prism(name, poly, plane, lo, hi, coll=None):
     for i in range(n):
         j = (i + 1) % n
         bm.faces.new((bot[i], bot[j], top[j], top[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return mesh_object(name, bm, coll=coll)
+
+
+def shell_between(name, near, far, coll=None):
+    """Closed solid between two matching 3D loops (a thin shell swept along view rays): side quads
+    plus fan-triangulated caps. The cutter of a photo-traced outline."""
+    bm = bmesh.new()
+    a = [bm.verts.new(Vector(p)) for p in near]
+    b = [bm.verts.new(Vector(p)) for p in far]
+    n = len(a)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((a[i], a[j], b[j], b[i]))
+    for loop in (a, b):
+        c = bm.verts.new(sum((v.co for v in loop), Vector()) / n)
+        for i in range(n):
+            bm.faces.new((c, loop[i], loop[(i + 1) % n]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return mesh_object(name, bm, coll=coll)
 
