@@ -1,0 +1,12 @@
+{
+  "name": "zstack",
+  "owner": { "name": "duolahypercho" },
+  "metadata": { "description": "zstack skills for Claude Code" },
+  "plugins": [
+    {
+      "name": "zstack",
+      "source": "./",
+      "description": "Every zstack skill in one plugin (skills/ is auto-discovered)."
+    }
+  ]
+}

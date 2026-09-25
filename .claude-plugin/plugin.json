@@ -1,0 +1,10 @@
+{
+  "name": "zstack",
+  "version": "0.1.0",
+  "description": "A stack of production skills for Claude Code. Each skill is a self-contained pipeline with checks that can fail: vehicle (reference images to a 1:1, fully rigged, crash-deformable car in Blender), and more.",
+  "author": { "name": "duolahypercho" },
+  "homepage": "https://github.com/duolahypercho/zstack",
+  "repository": "https://github.com/duolahypercho/zstack",
+  "license": "MIT",
+  "keywords": ["skills", "blender", "3d", "vehicle", "rigging", "gamedev"]
+}

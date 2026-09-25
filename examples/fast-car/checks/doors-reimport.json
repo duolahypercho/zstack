@@ -1,0 +1,66 @@
+{
+  "pass": true,
+  "steps": 24,
+  "parts": {
+    "Door_FL.001": {
+      "type": "conventional",
+      "fail": [],
+      "hingeToPanelM": 0.0,
+      "clashFaces": 0,
+      "outwardTravelM": [
+        0.0,
+        0.2187,
+        0.4347,
+        0.6303,
+        0.7894,
+        0.7894
+      ],
+      "pass": true
+    },
+    "Door_FR.001": {
+      "type": "conventional",
+      "fail": [],
+      "hingeToPanelM": 0.0,
+      "clashFaces": 0,
+      "outwardTravelM": [
+        0.0,
+        0.2192,
+        0.4357,
+        0.6316,
+        0.791,
+        0.791
+      ],
+      "pass": true
+    },
+    "Hood.001": {
+      "type": "lid",
+      "fail": [],
+      "hingeToPanelM": 0.0,
+      "clashFaces": 0,
+      "outwardTravelM": [
+        0.0,
+        0.1458,
+        0.2955,
+        0.4405,
+        0.5728,
+        0.5728
+      ],
+      "pass": true
+    },
+    "EngineCover.001": {
+      "type": "lid",
+      "fail": [],
+      "hingeToPanelM": 0.0,
+      "clashFaces": 0,
+      "outwardTravelM": [
+        0.0,
+        0.1622,
+        0.3249,
+        0.4778,
+        0.6115,
+        0.6115
+      ],
+      "pass": true
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "pass": true,
+  "keys": {
+    "Crush_Front": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 7,
+      "flipFraction": 0.00011,
+      "pass": true
+    },
+    "Crush_Rear": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 8,
+      "flipFraction": 0.00013,
+      "pass": true
+    },
+    "Crush_Left": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 10,
+      "flipFraction": 0.00016,
+      "pass": true
+    },
+    "Crush_Right": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 5,
+      "flipFraction": 8e-05,
+      "pass": true
+    }
+  }
+}
