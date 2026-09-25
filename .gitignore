@@ -11,3 +11,4 @@ refs/
 *.blend1
 examples/*/checks/*.npz
 examples/*/checks/curves.round*.json
+examples/*/checks/cameras.round*.json

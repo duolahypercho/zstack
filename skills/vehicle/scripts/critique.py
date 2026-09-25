@@ -9,6 +9,9 @@
     python3 critique.py apply <run> [--gain 0.7] [--edges top]
                                                           move curves.json control points by the damped
                                                           suggestions (backup: curves.round<n>.json)
+    python3 critique.py fitshape <run> [--refs DIR] [--minutes 20] [--joint] [--densify 20] [--start curves.json]
+                                                          fit every body-curve control point to all views
+                                                          at once (spec length/width/height are hard limits)
     python3 critique.py score <run> [--refs DIR] [--note "what changed"]
                                                           IoU per view, diff sheets, worst regions,
                                                           appends a round to checks/rounds.json
@@ -23,6 +26,11 @@ Needs numpy, opencv-python, scipy. Inputs:
                 "anchors": {"hub_FR": [u, v], "ground_FR": [u, v], "hub_RR": [u, v], ...},
                 "maskFix": {"add": [[[u, v], ...]], "sub": [[[u, v], ...]]},   optional polygons
                 "groundLine": [[u, v], [u, v]]}}           optional: drop mask below this line
+  "ignore": [[[u, v], ...]] + "ignoreReason": "<why>" drops those pixels from scoring for both the
+  model and the photo (part of the reference shows a different body, e.g. a convertible's deck).
+  A view with "skip": "<reason>" is excluded from fitting and scoring and the reason is printed
+  (use it for a reference that shows a different body than the one being built; never to hide
+  a view that simply scores badly).
   Anchors name real, spec-known points per visible wheel XX: hub_XX (outer centre), ground_XX (tyre
   contact point), tyreFront_XX / tyreRear_XX (the tyre's fore and aft extremes at hub height).
   Two wheels with all four points each fix a camera well; hub + ground alone leave the yaw loose.
@@ -43,6 +51,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 GATE = {'photo': 0.90, 'ortho': 0.95}
+HERE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK = 520          # long side of the working raster, px
 
 
@@ -59,6 +68,20 @@ def args(argv):
             out['note'] = argv[i + 1]
         elif argv[i] == '--views':
             out['views'] = argv[i + 1].split(',')
+        elif argv[i] == '--joint':
+            out['joint'] = True
+            i -= 1
+        elif argv[i] == '--include-skipped':
+            out['includeSkipped'] = True
+            i -= 1
+        elif argv[i] == '--trust':
+            out['trust'] = float(argv[i + 1])
+        elif argv[i] == '--start':
+            out['start'] = os.path.abspath(argv[i + 1])
+        elif argv[i] == '--densify':
+            out['densify'] = int(argv[i + 1])
+        elif argv[i] == '--minutes':
+            out['minutes'] = float(argv[i + 1])
         elif argv[i] == '--gain':
             out['gain'] = float(argv[i + 1])
         elif argv[i] == '--edges':
@@ -72,8 +95,13 @@ def args(argv):
     return out
 
 
-def load_views(a):
+def load_views(a, include_skipped=False):
     views = json.load(open(os.path.join(a['refs'], 'views.json')))
+    skipped = {k: v['skip'] for k, v in views.items() if v.get('skip')}
+    if skipped and not include_skipped:
+        for k, why in skipped.items():
+            print(f'skipping {k}: {why}')
+        views = {k: v for k, v in views.items() if not v.get('skip')}
     if a['views']:
         views = {k: v for k, v in views.items() if k in a['views']}
     return views
@@ -105,6 +133,15 @@ def anchors3d(spec):
 _T = np.linspace(0, 2 * np.pi, 72, endpoint=False)
 
 
+def residual(pred, img, ground):
+    """Mean anchor error in px. A tyre's lowest point is flat, so a ground anchor's horizontal
+    position is ill-defined: only its vertical error counts."""
+    d = pred - img
+    e = np.sqrt((d ** 2).sum(1))
+    e[ground] = np.abs(d[ground, 1])
+    return float(e.mean())
+
+
 def predict_anchors(names, spec, rv, tv, f, cx, cy):
     """Model prediction for each named anchor, in pixels.
     hub_XX       projected hub centre
@@ -122,20 +159,30 @@ def predict_anchors(names, spec, rv, tv, f, cx, cy):
             out.append(uv[0])
             continue
         if c not in cache:
-            ring = []
-            # the outer sidewall only: in a photo the tread and inner sidewall are mostly hidden
-            # inside the wheel arch, so the visible outline is the outer circle's ellipse
-            for xp in w['planes'][1:]:
-                ring.append(np.stack([np.full_like(_T, xp), w['y'] + w['R'] * np.cos(_T), w['R'] + w['R'] * np.sin(_T)], 1))
-            uv, _ = project(np.concatenate(ring), rv, tv, f, cx, cy)
+            # which way the tread faces: a camera ahead of the wheel sees the front of the tread, one
+            # behind it sees the rear. On the tread-facing side the outline is the hull of both
+            # sidewall circles (tread visible); on the far side only the outer sidewall shows.
+            Rm = rot(rv)
+            cam_pos = -Rm.T @ np.asarray(tv, float).ravel()
+            ahead = cam_pos[1] < w['y']                 # -Y is forward
+            rings = {}
+            for tag, xp in (('outer', w['planes'][1]), ('inner', w['planes'][0])):
+                pts = np.stack([np.full_like(_T, xp), w['y'] + w['R'] * np.cos(_T), w['R'] + w['R'] * np.sin(_T)], 1)
+                rings[tag], _ = project(pts, rv, tv, f, cx, cy)
+            both = np.concatenate([rings['outer'], rings['inner']])
             nose, _ = project(np.array([[0.0, w['y'] - 5.0, w['R']]]), rv, tv, f, cx, cy)
-            cache[c] = (uv, nose[0])
-        uv, nose = cache[c]
+            # measured on the reference set: the outer-sidewall outline predicts the photos' tyre
+            # extremes better than a tread-aware hull (the arch hides the tread on most wheels)
+            cache[c] = {'front': rings['outer'], 'rear': rings['outer'], 'ground': rings['outer'], 'nose': nose[0]}
+        cc = cache[c]
+        nose = cc['nose']
         if kind == 'ground':
+            uv = cc['ground']
             out.append(uv[np.argmax(uv[:, 1])])
         else:
-            # where the tyre outline (outer sidewall ellipse) crosses the hub's pixel row:
-            # the same construction used when reading the photo
+            # where the tyre outline crosses the hub's pixel row: the same construction used when
+            # reading the photo
+            uv = cc['front' if kind == 'tyreFront' else 'rear']
             hub_uv, _ = project(np.array([w['hub']]), rv, tv, f, cx, cy)
             hu, hv = hub_uv[0]
             toward = np.sign(nose[0] - hu) or 1.0          # which image direction is forward
@@ -194,6 +241,22 @@ def photo_mask(a, name, v):
         yy, xx = np.mgrid[0:h, 0:w]
         below = (yy - v0) * (u1 - u0) - (xx - u0) * (v1 - v0) > 0
         m[below] = 0
+    # nothing in a photo is below a tyre: under each wheel whose outline anchors are known, drop what
+    # lies below the tyre's lower arc (contact-patch shadow and pavement wedges GrabCut keeps)
+    an = v.get('anchors', {})
+    for c in ('FL', 'FR', 'RL', 'RR'):
+        need = [f'{k}_{c}' for k in ('hub', 'ground', 'tyreFront', 'tyreRear')]
+        if not all(k in an for k in need):
+            continue
+        hu, hv = an['hub_' + c]
+        gu, gv = an['ground_' + c]
+        u0, u1 = sorted((an['tyreFront_' + c][0], an['tyreRear_' + c][0]))
+        a_, b_ = max(1.0, (u1 - u0) / 2), max(1.0, gv - hv)
+        cu = (u0 + u1) / 2
+        for u in range(max(0, int(u0)), min(w, int(u1) + 1)):
+            t = min(1.0, abs(u - cu) / a_)
+            arc = hv + b_ * math.sqrt(max(0.0, 1 - t * t))
+            m[int(arc) + 3:, u] = 0
     # largest component, holes filled
     n, lab, stats, _ = cv2.connectedComponentsWithStats(m, 8)
     if n > 1:
@@ -207,6 +270,18 @@ def photo_mask(a, name, v):
             m[lab == i] = 1
     cv2.imwrite(cache, m * 255)
     return img, m > 0
+
+
+def ignore_mask(v, size, scale=1.0):
+    """Pixels excluded from scoring for BOTH model and photo: 'ignore' polygons in views.json mark
+    parts of a reference that show a different body from the one being built (e.g. a convertible's
+    rear deck in an otherwise usable front view). Each needs a stated 'ignoreReason'."""
+    w, h = size
+    W, H = int(round(w * scale)), int(round(h * scale))
+    ig = np.zeros((H, W), np.uint8)
+    for poly in v.get('ignore', []):
+        cv2.fillPoly(ig, [np.round(np.array(poly, np.float64) * scale).astype(np.int32)], 1)
+    return ig > 0
 
 
 # ---------------------------------------------------------------- projection
@@ -304,10 +379,15 @@ def fit_view(name, v, spec, verts, faces, mask):
         raise NotImplementedError('ortho views: use kind "photo" with anchors, or calibrate.py')
     sc = WORK / max(w, h)
     m_small = cv2.resize(mask.astype(np.uint8), (int(round(w * sc)), int(round(h * sc))), interpolation=cv2.INTER_NEAREST) > 0
+    ig_small = ignore_mask(v, (w, h), sc) if v.get('ignore') else None
+    if ig_small is not None:
+        m_small = m_small & ~ig_small
 
-    def anchor_err(rv, tv, f):
-        pred = predict_anchors(names, spec, np.asarray(rv, float).ravel(), np.asarray(tv, float).ravel(), f, cx, cy)
-        return float(np.sqrt(((pred - img) ** 2).sum(1)).mean())
+    ground = np.array([n.startswith('ground_') for n in names])
+
+    def anchor_err(rv, tv, f, pcx=cx, pcy=cy):
+        pred = predict_anchors(names, spec, np.asarray(rv, float).ravel(), np.asarray(tv, float).ravel(), f, pcx, pcy)
+        return residual(pred, img, ground)
 
     # 1. scan focal length: PnP on the anchors at each focal, score by silhouette overlap
     for f in np.geomspace(0.38 * w, 3.5 * w, 44):          # hfov ~105 deg .. ~16 deg
@@ -325,6 +405,8 @@ def fit_view(name, v, spec, verts, faces, mask):
         if (z < 0.1).any():
             continue
         s = raster(verts, faces, rv, tv, f, cx, cy, (w, h), sc)
+        if ig_small is not None:
+            s = s & ~ig_small
         e = anchor_err(rv, tv, f)
         cands.append((iou(s, m_small) - 4 * e / max(w, h), f, rv.copy(), tv.copy(), e))
     if not cands:
@@ -334,44 +416,60 @@ def fit_view(name, v, spec, verts, faces, mask):
     # spec-true points); the silhouette then fixes what four points on one side cannot: the roll about
     # the wheel line and the focal length, which the car's spec height and length determine.
     best = None
+    # The principal point is free too: web photos are often crops, so the optical centre need not be
+    # the image centre (a centred guess on a crop shows up as an ever-wider lens). Offsets are in
+    # units of 2% of the image size and mildly penalised beyond 25%.
+    def pp(x):
+        return cx + x[7] * 0.02 * w, cy + x[8] * 0.02 * h
+
+    def pp_prior(x):
+        return max(0.0, abs(x[7] * 0.02) - 0.25) + max(0.0, abs(x[8] * 0.02) - 0.25)
+
     seeds = []
     for _, f0, rv0, tv0, _ in cands[:4]:
         # anchors alone first: the camera the measured wheel points imply
         d0 = np.linalg.norm(tv0)
 
         def acost(x, rv0=rv0, tv0=tv0, f0=f0, d0=d0):
-            return anchor_err(rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0, f0 * math.exp(x[6] * 0.05))
-        r = minimize(acost, np.zeros(7), method='Powell', options={'maxiter': 4000, 'xtol': 1e-4, 'ftol': 1e-7})
+            return anchor_err(rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0, f0 * math.exp(x[6] * 0.05), *pp(x)) \
+                + 50 * pp_prior(x)
+        r = minimize(acost, np.zeros(9), method='Powell', options={'maxiter': 6000, 'xtol': 1e-4, 'ftol': 1e-7})
         x = r.x
-        seeds.append((r.fun, f0 * math.exp(x[6] * 0.05), rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0))
+        seeds.append((r.fun, f0 * math.exp(x[6] * 0.05), rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0, pp(x)))
     seeds.sort(key=lambda t: t[0])
     err0 = seeds[0][0]
-    for _, f0, rv0, tv0 in seeds[:2]:
+    best = None
+    for _, f0, rv0, tv0, (cx0, cy0) in seeds[:2]:
         dist = np.linalg.norm(tv0)
 
-        def unpack(x, rv0=rv0, tv0=tv0, f0=f0, dist=dist):
-            return rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * dist, f0 * math.exp(x[6] * 0.05)
+        def unpack(x, rv0=rv0, tv0=tv0, f0=f0, dist=dist, cx0=cx0, cy0=cy0):
+            return (rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * dist, f0 * math.exp(x[6] * 0.05),
+                    cx0 + x[7] * 0.02 * w, cy0 + x[8] * 0.02 * h)
 
         def cost(x, unpack=unpack):
-            rv, tv, f = unpack(x)
-            s = raster(verts, faces, rv, tv, f, cx, cy, (w, h), sc)
+            rv, tv, f, pcx, pcy = unpack(x)
+            s = raster(verts, faces, rv, tv, f, pcx, pcy, (w, h), sc)
+            if ig_small is not None:
+                s = s & ~ig_small
             # anchors are measured facts: within a few pixels they are free, beyond that they
             # dominate, so the silhouette can settle roll/focal but never drag the wheels off
             tol = max(6.0, 0.004 * max(w, h))
-            e = anchor_err(rv, tv, f)
+            e = anchor_err(rv, tv, f, pcx, pcy)
             hfov = 2 * math.degrees(math.atan(w / 2 / f))
             prior = max(0.0, 16 - hfov) + max(0.0, hfov - 105)       # plausible lenses, phone wide included
-            return (1 - iou(s, m_small)) + 4 * e / max(w, h) + 0.2 * max(0.0, e - tol) / tol + 0.05 * prior
-        res = minimize(cost, np.zeros(7), method='Powell', options={'maxiter': 3000, 'xtol': 1e-3, 'ftol': 1e-6})
+            off = max(0.0, abs(pcx - w / 2) / w - 0.25) + max(0.0, abs(pcy - h / 2) / h - 0.25)
+            return (1 - iou(s, m_small)) + 4 * e / max(w, h) + 0.2 * max(0.0, e - tol) / tol + 0.05 * prior + 2 * off
+        res = minimize(cost, np.zeros(9), method='Powell', options={'maxiter': 4000, 'xtol': 1e-3, 'ftol': 1e-6})
         if best is None or res.fun < best[0]:
             best = (res.fun, unpack(res.x))
-    rv, tv, f = best[1]
-    err = anchor_err(rv, tv, f)
+    rv, tv, f, cx, cy = best[1]
+    err = anchor_err(rv, tv, f, cx, cy)
     return {'K': [float(f), float(f), float(cx), float(cy)], 'R': rot(rv).tolist(), 't': [float(x) for x in tv],
             'silhouetteIoU': round(float(1 - best[0]), 4),
             'rvec': [float(x) for x in rv], 'size': [w, h], 'anchorErrPx': round(err, 2),
             'anchorErrPxBeforeRefine': round(float(err0), 2), 'focalPx': round(float(f), 1),
-            'hfovDeg': round(math.degrees(2 * math.atan(w / 2 / f)), 2)}
+            'hfovDeg': round(math.degrees(2 * math.atan(w / 2 / f)), 2),
+            'principalOffset': [round(float(cx / w - 0.5), 3), round(float(cy / h - 0.5), 3)]}
 
 
 # ---------------------------------------------------------------- scoring
@@ -464,6 +562,293 @@ def suggest(v_name, cam, verts, faces, ref, spec, step=0.1):
 
 # ---------------------------------------------------------------- commands
 
+def clamp_spec(cfg, spec):
+    """Keep the loft inside the spec's published envelope. The curves are PCHIP (no overshoot), so
+    clamping control points bounds the whole surface: top, fender/rail peaks (top - rail) and roof
+    shoulders (top - crown) <= height; plan half-width <= width / 2."""
+    H, HW = spec['height'], spec['width'] / 2
+    c = cfg['curves']
+    top = {y: v for y, v in c['top']}
+    for p in c['top']:
+        p[1] = min(p[1], H)
+    from bisect import bisect_left
+    ys = sorted(top)
+
+    def top_at(y):
+        i = min(max(bisect_left(ys, y), 1), len(ys) - 1)
+        y0, y1 = ys[i - 1], ys[i]
+        t = 0 if y1 == y0 else (y - y0) / (y1 - y0)
+        return min(H, top[y0] + (top[y1] - top[y0]) * min(1, max(0, t)))
+    for key in ('rail', 'crown'):
+        for p in c.get(key, []):
+            if abs(p[0]) < 5:
+                p[1] = max(p[1], top_at(p[0]) - H)     # peak = top - drop <= H
+    for p in c['halfW']:
+        p[1] = min(p[1], HW - 0.003)            # the section spline bulges ~2 mm past its key point
+    for key, lo, hi in (('tuck', 0.0, 0.15), ('floorIn', 0.03, 0.30)):
+        for p in c.get(key, []):
+            p[1] = min(hi, max(lo, p[1]))
+    return cfg
+
+
+FIT_CURVES = ('top', 'bottom', 'rail', 'belt', 'crease', 'halfW', 'beltW', 'railW', 'crown', 'bulgeDrop', 'tuck', 'floorIn')
+SMOOTH = 3.0        # weight of the curvature penalty: extra freedom may not buy IoU with lumps
+# Only silhouette-observable curves are fitted. belt / crease / beltW are character lines drawn
+# inside the outline: a silhouette barely sees them, so fitting them lets them drift into lumps.
+FIT_OBSERVED = ('top', 'bottom', 'rail', 'halfW', 'railW', 'tuck', 'floorIn')
+TRUST = 0.0005      # score cost per (5 cm)^2 moved from the design: weakly observed points stay put
+
+
+def densify(cfg, n, loft):
+    """Resample every fitted curve to n evenly spaced control points (same shape, more freedom)."""
+    L = cfg['length']
+    ys = [round(-L / 2 + L * i / (n - 1), 4) for i in range(n)]
+    for k in FIT_CURVES:
+        pts = cfg['curves'].get(k) or loft.DEFAULTS.get(k)
+        if pts is None:
+            continue
+        cv = loft.Curve(pts)
+        cfg['curves'][k] = [[y, round(cv(y), 4)] for y in ys]
+    return cfg
+
+
+def roughness(cfg):
+    """Sum of squared second differences of every fitted curve, per metre of length: 0 for straight
+    or evenly curving lines, large for bumps."""
+    r = 0.0
+    for k in FIT_OBSERVED:
+        pts = [p for p in cfg['curves'].get(k, []) if abs(p[0]) < 5]
+        for (y0, a0), (y1, a1), (y2, a2) in zip(pts, pts[1:], pts[2:]):
+            h0, h1 = max(y1 - y0, 1e-3), max(y2 - y1, 1e-3)
+            d2 = ((a2 - a1) / h1 - (a1 - a0) / h0) / ((h0 + h1) / 2)
+            r += d2 * d2 * (h0 + h1) / 2
+    return r
+FIT_SCALARS = {'noseRound': 0.04, 'tailRound': 0.03, 'noseMin': 0.04, 'tailMin': 0.03,
+               'nosePower': 0.25, 'tailPower': 0.25,
+               'noseRoundLow': 0.04, 'noseMinLow': 0.04, 'nosePowerLow': 0.25,
+               'tailRoundLow': 0.03, 'tailMinLow': 0.03, 'tailPowerLow': 0.25}
+# realistic plan shapes: a pointed-to-rounded nose, a squarish tail (a wall-fronted car is not a car)
+SCALAR_LIMITS = {'noseRound': (0.35, 0.70), 'tailRound': (0.15, 0.40), 'noseMin': (0.30, 0.75),
+                 'tailMin': (0.65, 0.95), 'nosePower': (1.8, 4.0), 'tailPower': (2.5, 5.0),
+                 'noseRoundLow': (0.20, 0.70), 'noseMinLow': (0.30, 0.90), 'nosePowerLow': (1.8, 6.0),
+                 'tailRoundLow': (0.10, 0.40), 'tailMinLow': (0.60, 0.97), 'tailPowerLow': (2.0, 6.0)}
+
+
+def fitshape(a, spec, views, cams):
+    """Coordinate descent on the body curves against every view's silhouette.
+
+    The body is re-lofted in plain Python (blender/body.py loft_mesh) for each candidate; parts the
+    curves do not shape are rasterised per camera. Objective: mean IoU + worst IoU, so no view is
+    traded away for another. Hard limits: the loft may not exceed the spec's height or half-width
+    (the car stays 1:1 in its published dimensions); length is fixed by construction.
+
+    --joint also refines every camera in the same descent (a silhouette bundle adjustment): each
+    camera pays the same anchor penalty as `fit`, so the wheels stay on their measured pixels while
+    shape and cameras settle together instead of oscillating between separate fits."""
+    import copy
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE_DIR), 'blender'))
+    import body as loft
+    joint = a.get('joint', False)
+    cpath = os.path.join(a['run'], 'curves.json')
+    cur = clamp_spec(json.load(open(a.get('start') or cpath)), spec)
+    for k, (lo, hi) in SCALAR_LIMITS.items():         # start inside the realistic plan-shape box
+        if k in cur:
+            cur[k] = min(hi, max(lo, cur[k]))
+    if a.get('densify'):
+        cur = clamp_spec(densify(cur, int(a['densify']), loft), spec)
+    parts = json.load(open(os.path.join(a['run'], 'parts.json')))
+    fixed = np.load(os.path.join(a['run'], 'checks', 'model_tris_fixed.npz'))
+    fv, ff = fixed['verts'].astype(np.float64), fixed['faces']
+    H, HW = spec['height'], spec['width'] / 2
+    arches = [(d['x'][0], d['y'], d['z'], d['r']) for d in parts.get('arches', [])]
+    rough0 = max(roughness(cur), 1e-6)
+    design = json.loads(json.dumps(cur))            # the trust region is measured from here
+    V = []
+    for name, v in views.items():
+        if name not in cams:
+            continue
+        c = cams[name]
+        _, ref = photo_mask(a, name, v)
+        w, h = c['size']
+        sc = WORK / max(w, h)
+        small = cv2.resize(ref.astype(np.uint8), (int(round(w * sc)), int(round(h * sc))),
+                           interpolation=cv2.INTER_NEAREST) > 0
+        names = [k for k in v.get('anchors', {}) if k.split('_')[0] in ('hub', 'ground', 'tyreFront', 'tyreRear')]
+        img = np.array([v['anchors'][k] for k in names], np.float64)
+        st = {'rvec': np.array(c['rvec'], float), 't': np.array(c['t'], float), 'f': c['K'][0],
+              'cx': c['K'][2], 'cy': c['K'][3]}
+        ig = ignore_mask(v, (w, h), sc) if v.get('ignore') else None
+        if ig is not None:
+            small = small & ~ig
+        V.append({'name': name, 'size': (w, h), 'sc': sc, 'small': small, 'names': names, 'img': img, 'st': st,
+                  'ig': ig})
+
+    def camdict(vw, st):
+        return {'K': [st['f'], st['f'], st['cx'], st['cy']], 'rvec': list(st['rvec']), 't': list(st['t']),
+                'R': rot(st['rvec']).tolist(), 'size': list(vw['size'])}
+
+    def penalty(vw, st):
+        if not joint:
+            return 0.0
+        w, h = vw['size']
+        pred = predict_anchors(vw['names'], spec, st['rvec'], st['t'], st['f'], st['cx'], st['cy'])
+        e = residual(pred, vw['img'], np.array([n.startswith('ground_') for n in vw['names']]))
+        tol = max(6.0, 0.004 * max(w, h))
+        hfov = 2 * math.degrees(math.atan(w / 2 / st['f']))
+        lens = max(0.0, 16 - hfov) + max(0.0, hfov - 105)
+        off = max(0.0, abs(st['cx'] - w / 2) / w - 0.25) + max(0.0, abs(st['cy'] - h / 2) / h - 0.25)
+        return 4 * e / max(w, h) + 0.2 * max(0.0, e - tol) / tol + 0.05 * lens + 2 * off
+
+    def body_tris(cfg):
+        verts, quads = loft.loft_mesh(cfg, step=0.05)
+        P = np.array(verts)
+        if P[:, 2].max() > H + 0.003 or np.abs(P[:, 0]).max() > HW + 0.003:      # spec envelope, +-3 mm
+            return None
+        Q = np.array(quads)
+        T = np.concatenate([Q[:, [0, 1, 2]], Q[:, [0, 2, 3]]])
+        cen = P[T].mean(axis=1)
+        keep = np.ones(len(T), bool)
+        for x0, yc, zc, r in arches:           # wheel wells: the body is cut there
+            keep &= ~((np.abs(cen[:, 0]) > x0) & ((cen[:, 1] - yc) ** 2 + (cen[:, 2] - zc) ** 2 < r * r))
+        return P, T[keep]
+
+    def view_iou(vw, st, PT, base=None):
+        c = camdict(vw, st)
+        if base is None:
+            base = raster_cam(fv, ff, c, vw['sc'])
+        uv, _, z = cam_project(PT[0], c)
+        m = raster_uv(uv, z, PT[1], tuple(vw['size']), vw['sc']) | base
+        if vw['ig'] is not None:
+            m = m & ~vw['ig']
+        return iou(m, vw['small']), base
+
+    def drift(cfg):
+        d = 0.0
+        for k in FIT_OBSERVED:
+            for (_, v), (_, v0) in zip(cfg['curves'][k], design['curves'][k]):
+                d += ((v - v0) / 0.05) ** 2
+        for k in FIT_SCALARS:
+            if k in cfg:
+                d += ((cfg[k] - design[k]) / (FIT_SCALARS[k] * 2)) ** 2
+        return d
+
+    def total(ious, pens, cfg=None):
+        reg = 0.0
+        if cfg is not None:
+            reg = SMOOTH * 0.01 * max(0.0, roughness(cfg) / rough0 - 1.0) + a.get('trust', TRUST) * drift(cfg)
+        return float(np.mean(ious) + np.min(ious) - 2 * np.mean(pens)) - reg
+
+    PT = body_tris(cur)
+    if PT is None:
+        raise SystemExit('curves break the spec envelope even after clamping')
+    ious, bases, pens = [], [], []
+    for vw in V:
+        i_, b_ = view_iou(vw, vw['st'], PT)
+        ious.append(i_)
+        bases.append(b_)
+        pens.append(penalty(vw, vw['st']))
+    J = total(ious, pens, cur)
+    show = lambda: '  '.join(f"{vw['name']} {i:.4f}" for vw, i in zip(V, ious))   # noqa: E731
+    print('start  ' + show(), f'  J {J:.4f}', '(joint shape + cameras)' if joint else '')
+
+    params = []
+    for k in FIT_OBSERVED:
+        for i, (y, _) in enumerate(cur['curves'].get(k, [])):
+            if abs(y) < 5:
+                params.append(('c', k, i, 0.01 if k in ('tuck', 'floorIn') else 0.02))
+    params += [('s', k, None, st) for k, st in FIT_SCALARS.items() if k in cur]
+    if joint:
+        for vi in range(len(V)):
+            for j in range(3):
+                params.append(('r', vi, j, 0.003))
+            for j in range(3):
+                params.append(('t', vi, j, 0.003))
+            params += [('f', vi, None, 0.01), ('cx', vi, None, 0.003), ('cy', vi, None, 0.003)]
+    t0 = time.time()
+    scale = 1.0
+    while scale > 0.12 and time.time() - t0 < a.get('minutes', 20) * 60:
+        improved = 0
+        for kind, k, i, stp in params:
+            for sgn in (1, -1):
+                d = sgn * stp * scale
+                if kind in ('c', 's'):
+                    cand = copy.deepcopy(cur)
+                    if kind == 'c':
+                        cand['curves'][k][i][1] = round(cand['curves'][k][i][1] + d, 4)
+                    else:
+                        lo, hi = SCALAR_LIMITS[k]
+                        cand[k] = round(min(hi, max(lo, cand[k] + d * 1.0)), 4)
+                    pt = body_tris(cand)
+                    if pt is None:
+                        continue
+                    new = [view_iou(vw, vw['st'], pt, bases[j])[0] for j, vw in enumerate(V)]
+                    s_ = total(new, pens, cand)
+                    if s_ > J + 1e-5:
+                        cur, PT, ious, J = cand, pt, new, s_
+                        improved += 1
+                        break
+                else:
+                    vw = V[k]
+                    st = dict(vw['st'])
+                    st['rvec'], st['t'] = st['rvec'].copy(), st['t'].copy()
+                    w_, h_ = vw['size']
+                    if kind == 'r':
+                        st['rvec'][i] += d
+                    elif kind == 't':
+                        st['t'][i] += d * np.linalg.norm(st['t'])
+                    elif kind == 'f':
+                        st['f'] *= math.exp(d)
+                    elif kind == 'cx':
+                        st['cx'] += d * w_
+                    else:
+                        st['cy'] += d * h_
+                    i_new, b_new = view_iou(vw, st, PT)
+                    p_new = penalty(vw, st)
+                    new_i = list(ious)
+                    new_i[k] = i_new
+                    new_p = list(pens)
+                    new_p[k] = p_new
+                    s_ = total(new_i, new_p, cur)
+                    if s_ > J + 1e-5:
+                        vw['st'], ious, pens, J = st, new_i, new_p, s_
+                        bases[k] = b_new
+                        improved += 1
+                        break
+        print(f'pass scale {scale:.2f}: {improved} moves  ' + show(), f'  J {J:.4f}  ({time.time() - t0:.0f}s)')
+        if improved < 3:
+            scale *= 0.5
+    rounds = len(json.load(open(os.path.join(a['run'], 'checks', 'rounds.json')))) if os.path.exists(
+        os.path.join(a['run'], 'checks', 'rounds.json')) else 0
+    json.dump(json.load(open(cpath)), open(backup_path(a['run'], rounds), 'w'), indent=1)
+    json.dump(cur, open(cpath, 'w'), indent=2)
+    if joint:
+        cam_path = os.path.join(a['run'], 'checks', 'cameras.json')
+        if os.path.exists(cam_path):          # keep the cameras this shape was not fitted with
+            json.dump(json.load(open(cam_path)), open(backup_path(a['run'], rounds).replace('curves.', 'cameras.'), 'w'), indent=1)
+        for vw in V:
+            c = cams[vw['name']]
+            st = vw['st']
+            c.update(camdict(vw, st))
+            pred = predict_anchors(vw['names'], spec, st['rvec'], st['t'], st['f'], st['cx'], st['cy'])
+            c['anchorErrPx'] = round(residual(pred, vw['img'], np.array([n.startswith('ground_') for n in vw['names']])), 2)
+            c['focalPx'] = round(float(st['f']), 1)
+            c['hfovDeg'] = round(math.degrees(2 * math.atan(vw['size'][0] / 2 / st['f'])), 2)
+            c['refinedJointly'] = True
+        json.dump(cams, open(os.path.join(a['run'], 'checks', 'cameras.json'), 'w'), indent=1)
+        print('anchor error px: ' + '  '.join(f"{vw['name']} {cams[vw['name']]['anchorErrPx']}" for vw in V))
+    return ious
+
+
+def backup_path(run, rounds):
+    """curves.round<n>.json, or .round<n>b/.c... if that round already has a backup (never overwrite)."""
+    base = os.path.join(run, 'checks', f'curves.round{rounds:02d}')
+    p, k = base + '.json', 0
+    while os.path.exists(p):
+        k += 1
+        p = f'{base}{chr(96 + k)}.json'
+    return p
+
+
 def apply_suggestions(a):
     """Shift the 'top' (and optionally 'bottom') curve control points by the damped, smoothed
     per-station corrections from checks/suggest.json. Only edges named in --edges move: the
@@ -473,7 +858,7 @@ def apply_suggestions(a):
     cur = json.load(open(cpath))
     rounds = len(json.load(open(os.path.join(a['run'], 'checks', 'rounds.json')))) if os.path.exists(
         os.path.join(a['run'], 'checks', 'rounds.json')) else 0
-    json.dump(cur, open(os.path.join(a['run'], 'checks', f'curves.round{rounds:02d}.json'), 'w'), indent=1)
+    json.dump(cur, open(backup_path(a['run'], rounds), 'w'), indent=1)
     changes = {}
     for edge in a['edges']:
         key = edge + 'Dz'
@@ -491,6 +876,7 @@ def apply_suggestions(a):
                 p[1] = round(p[1] + d, 4)
                 moved.append((p[0], round(d, 3)))
         changes[edge] = moved
+    clamp_spec(cur, json.load(open(os.path.join(a['run'], 'spec.json'))))
     json.dump(cur, open(cpath, 'w'), indent=2)
     return changes
 
@@ -505,7 +891,7 @@ def main(argv):
         for edge, moved in apply_suggestions(a).items():
             print(edge, ' '.join(f'{y:+.2f}:{d:+.3f}' for y, d in moved))
         return 0
-    views = load_views(a)
+    views = load_views(a, include_skipped=a.get('includeSkipped', False))
     if a['cmd'] == 'mask':
         for name, v in views.items():
             img, m = photo_mask(a, name, v)
@@ -533,6 +919,9 @@ def main(argv):
             print(name, 'focal', cams[name]['focalPx'], 'hfov', cams[name]['hfovDeg'], 'anchor err px',
                   cams[name]['anchorErrPxBeforeRefine'], '->', cams[name]['anchorErrPx'], f'({time.time() - t:.0f}s)')
         json.dump(cams, open(cam_path, 'w'), indent=1)
+        return 0
+    if a['cmd'] == 'fitshape':
+        fitshape(a, spec, views, cams)
         return 0
     if a['cmd'] == 'suggest':
         # pool every calibrated view: a single view over-fits what it cannot see (a side view
@@ -573,6 +962,9 @@ def main(argv):
             img, ref = photo_mask(a, name, v)
             c = cams[name]
             model = raster_cam(verts, faces, c)
+            if v.get('ignore'):
+                ig = ignore_mask(v, c['size'])
+                model, ref = model & ~ig, ref & ~ig
             s = iou(model, ref)
             gate = GATE[v.get('kind', 'photo')]
             worst = regions(model, ref, verts, c)

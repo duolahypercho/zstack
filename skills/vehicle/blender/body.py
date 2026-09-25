@@ -24,9 +24,34 @@ Usage inside Blender (MCP execute or `blender -b -P`):
 """
 import math
 
-import bmesh
-import bpy
-from mathutils import Vector
+try:                                   # inside Blender
+    from mathutils import Vector
+except ImportError:                    # plain Python (scripts/critique.py rebuilds the loft to fit it)
+    class Vector(tuple):
+        def __new__(cls, xy):
+            return tuple.__new__(cls, (float(xy[0]), float(xy[1])))
+
+        x = property(lambda s: s[0])
+        y = property(lambda s: s[1])
+
+        def __add__(s, o):
+            return Vector((s[0] + o[0], s[1] + o[1]))
+
+        def __sub__(s, o):
+            return Vector((s[0] - o[0], s[1] - o[1]))
+
+        def __mul__(s, k):
+            return Vector((s[0] * k, s[1] * k))
+
+        __rmul__ = __mul__
+
+        @property
+        def length(s):
+            return math.hypot(s[0], s[1])
+
+        def normalized(s):
+            n = s.length or 1.0
+            return Vector((s[0] / n, s[1] / n))
 
 
 class Curve:
@@ -77,7 +102,8 @@ def hermite(p0, p1, m0, m1, t):
     return p0 * (2 * t3 - 3 * t2 + 1) + m0 * (t3 - 2 * t2 + t) + p1 * (-2 * t3 + 3 * t2) + m1 * (t3 - t2)
 
 
-DEFAULTS = {'crown': [[-9, 0.02], [9, 0.02]], 'bulgeDrop': [[-9, 0.10], [9, 0.10]], 'tuck': [[-9, 0.05], [9, 0.05]]}
+DEFAULTS = {'crown': [[-9, 0.02], [9, 0.02]], 'bulgeDrop': [[-9, 0.10], [9, 0.10]], 'tuck': [[-9, 0.05], [9, 0.05]],
+            'floorIn': [[-9, 0.17], [9, 0.17]]}
 
 
 class BodySpec:
@@ -94,6 +120,11 @@ class BodySpec:
         self.tail_min = cfg.get('tailMin', 0.0)
         self.nose_p = cfg.get('nosePower', 2.0)   # plan corner superellipse (2 round, higher squarer)
         self.tail_p = cfg.get('tailPower', 2.0)
+        # the lower body (bumper / sill level) may round differently from the upper body: a wedge
+        # nose is pointed at bonnet level and square at bumper level. Defaults: same as upper.
+        self.low = {k: cfg.get(k + 'Low', cfg.get(k, d)) for k, d in
+                    (('noseRound', 0.34), ('noseMin', 0.0), ('nosePower', 2.0),
+                     ('tailRound', 0.28), ('tailMin', 0.0), ('tailPower', 2.0))}
 
     def bottom(self, y):
         z = self.c['bottom'](y)
@@ -102,6 +133,18 @@ class BodySpec:
             if abs(dy) < r:
                 z = max(z, zc + math.sqrt(r * r - dy * dy))
         return z
+
+    def plan_low(self, y):
+        lo = self.low
+        if y < self.y0 + lo['noseRound']:
+            t = min(1.0, (self.y0 + lo['noseRound'] - y) / lo['noseRound'])
+            p = lo['nosePower']
+            return lo['noseMin'] + (1 - lo['noseMin']) * max(0.0, 1 - t ** p) ** (1 / p)
+        if y > self.y1 - lo['tailRound']:
+            t = min(1.0, (y - (self.y1 - lo['tailRound'])) / lo['tailRound'])
+            p = lo['tailPower']
+            return lo['tailMin'] + (1 - lo['tailMin']) * max(0.0, 1 - t ** p) ** (1 / p)
+        return 1.0
 
     def plan(self, y):
         if y < self.y0 + self.nose_r:
@@ -117,7 +160,10 @@ class BodySpec:
         top = c['top'](y)
         zb = self.bottom(y)
         f = self.plan(y)
+        fl = self.plan_low(y)
         hw = c['halfW'](y) * f
+        hwl = c['halfW'](y) * fl                      # lower body plan width
+        hwm = (hw + hwl) / 2                          # the shoulder blends the two
         bw = min(c['beltW'](y) * f, hw - 0.005)
         rw = min(c['railW'](y) * f, bw - 0.004)
         rail = top - c['rail'](y)
@@ -129,10 +175,10 @@ class BodySpec:
         roof_edge = top - c['crown'](y)
         return [
             (0.0, zb, False),                          # 0 bottom centre
-            (hw - 0.17 * f, zb, False),                # 1 floor edge
-            (hw - c['tuck'](y), zr, False),            # 2 rocker turn
-            (hw - 0.004, zmax, False),                 # 3 lower flank
-            (hw, zc, belt - zc >= 0.10 and zc - zb >= 0.15),  # 4 shoulder crease (sharp only with a shoulder above)
+            (hwl - c['floorIn'](y) * fl, zb, False),   # 1 floor edge (how far the floor pan is set in)
+            (hwl - c['tuck'](y), zr, False),           # 2 rocker turn
+            (hwl - 0.004, zmax, False),                # 3 lower flank
+            (max(hwm, bw + 0.005), zc, belt - zc >= 0.10 and zc - zb >= 0.15),  # 4 shoulder crease
             (bw, belt, False),                         # 5 glass line
             (rw, rail, False),                         # 6 roof rail / bonnet edge
             (rw * 0.80, roof_edge, False),             # 7 roof shoulder
@@ -183,6 +229,9 @@ def stations(spec, step):
         u = (k / 20) ** 2
         ys += [spec.y0 + spec.nose_r * u, spec.y1 - spec.tail_r * u]
     # extra stations by plan-width fraction so a squared nose/tail keeps its corner
+    for k in range(1, 12):
+        u = (k / 12) ** 2
+        ys += [spec.y0 + spec.low['noseRound'] * u, spec.y1 - spec.low['tailRound'] * u]
     for lo_, hi_, tip in ((spec.y0, spec.y0 + spec.nose_r, spec.y0), (spec.y1 - spec.tail_r, spec.y1, spec.y1)):
         for ft in (0.995, 0.985, 0.97, 0.95, 0.92, 0.88, 0.82, 0.74, 0.64, 0.52, 0.40, 0.28, 0.16):
             a_, b_ = lo_, hi_
@@ -196,8 +245,33 @@ def stations(spec, step):
     return sorted(set(round(y, 5) for y in ys if spec.y0 <= y <= spec.y1))
 
 
+def loft_mesh(cfg, step=0.04):
+    """Plain-Python loft: (verts, quads) of the outer surface, no end caps. Used by the critique
+    to re-rasterise the body thousands of times while it fits the curves to the photos."""
+    spec = BodySpec(cfg)
+    verts, quads, rows = [], [], []
+    for y in stations(spec, step):
+        sec, _ = section(spec, y)
+        right = [(p[0], y, p[1]) for p in sec]
+        left = [(-p[0], y, p[1]) for p in sec[1:-1]]
+        ring = right + list(reversed(left))
+        rows.append(list(range(len(verts), len(verts) + len(ring))))
+        verts += ring
+    for a, b in zip(rows, rows[1:]):
+        m = len(a)
+        for j in range(m):
+            quads.append((a[j], b[j], b[(j + 1) % m], a[(j + 1) % m]))
+    for ring in (rows[0], rows[-1]):              # flat end caps (fan) so the silhouette is closed
+        c = len(verts)
+        verts.append(tuple(sum(verts[i][k] for i in ring) / len(ring) for k in range(3)))
+        quads += [(c, ring[j], ring[(j + 1) % len(ring)], c) for j in range(len(ring))]
+    return verts, quads
+
+
 def build(cfg, name='BodyShell', step=0.021, material=None):
     """Closed, mirrored shell with smooth shading. Returns the object (linked)."""
+    import bmesh
+    import bpy
     spec = BodySpec(cfg)
     ys = stations(spec, step)
     bm = bmesh.new()

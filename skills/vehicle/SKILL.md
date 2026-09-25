@@ -121,11 +121,37 @@ A failure is fixed in the model or the rig, never by lowering a threshold.
 ## 6. Critique until 1:1
 
 ```
-python3 <skill>/scripts/critique.py score   runs/<id> --refs DIR --note "what changed"
-python3 <skill>/scripts/critique.py suggest runs/<id> --refs DIR
-python3 <skill>/scripts/critique.py apply   runs/<id> --gain 0.7 --edges top
-python3 <skill>/scripts/iterate.py          runs/<id> --refs DIR --rounds 6
+python3 <skill>/scripts/critique.py score    runs/<id> --refs DIR --note "what changed"
+python3 <skill>/scripts/critique.py fitshape runs/<id> --refs DIR --joint --densify 20 --trust 0.00025
+python3 <skill>/scripts/critique.py suggest  runs/<id> --refs DIR
+python3 <skill>/scripts/critique.py apply    runs/<id> --gain 0.7 --edges top
+python3 <skill>/scripts/iterate.py           runs/<id> --refs DIR --rounds 6
 ```
+
+`fitshape --joint` is the main tool: it re-lofts the body in plain Python (hundreds of candidates
+a minute) and runs one coordinate descent over the silhouette-observable curves (`top`, `bottom`,
+`rail`, `halfW`, `railW`, `tuck`, `floorIn`), the nose/tail plan shape (upper body and, for wedge
+noses, the lower body separately via `*Low` keys) and every camera. The objective is mean IoU +
+worst IoU, so no view is traded away; each camera pays its anchor penalty, so wheels stay on
+their measured pixels. Guards that keep the result a car:
+- the spec envelope is a hard limit (height, half-width, +-3 mm), so the car stays 1:1;
+- character lines (`belt`, `crease`, `beltW`) are never fitted: a silhouette barely sees them;
+- a trust region (`--trust`) charges for every metre moved from the design, and a curvature
+  penalty charges for lumps; plan-shape scalars live in realistic bounds.
+A silhouette can be matched by a shape that no longer looks like the car. After every fit,
+render `front34`, `rear34`, `front`, `side_left` and look before accepting it.
+
+Reference hygiene (in `views.json`), each recorded with its reason:
+- `maskFix` add/sub polygons for dark roofs, reflections, parked cars and shadows GrabCut gets
+  wrong; draw them from zoomed crops on the real edge. Nothing below a tyre ever counts (applied
+  automatically from each wheel's anchors).
+- `ignore` + `ignoreReason`: pixels scored for neither model nor photo, for the part of a reference
+  that shows a different body (a convertible's deck in an otherwise usable front view).
+- `skip`: a reference of a different body altogether. Never skip or ignore a view because it scores
+  badly.
+
+Intakes are closed, deep ducts (fans sit inside them, visible through the grille): an
+open-backed recess is see-through and punches a hole in the silhouette.
 
 `score` rasterises the model through each solved camera, computes silhouette IoU against the
 reference mask, writes a sheet per view (red = model too big, blue = too small) and names the

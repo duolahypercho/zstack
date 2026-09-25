@@ -5245,5 +5245,3976 @@
   },
   "pass": false,
   "meanIoU": 0.8922
+ },
+ {
+  "round": 34,
+  "time": "2026-09-25 14:02",
+  "note": "fitshape: all curves vs 4 coupe-consistent views, spec-clamped",
+  "views": {
+   "street": {
+    "iou": 0.9205,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2398,
+      "centrePx": [
+       1032,
+       640
+      ],
+      "near": {
+       "x": -0.64,
+       "y": -2.27,
+       "z": 0.52
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 2243,
+      "centrePx": [
+       274,
+       491
+      ],
+      "near": {
+       "x": -0.31,
+       "y": 2.26,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1172,
+      "centrePx": [
+       441,
+       452
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 1.39,
+       "z": 1.12
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 6.23
+   },
+   "front_right": {
+    "iou": 0.868,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 79321,
+      "centrePx": [
+       1186,
+       388
+      ],
+      "near": {
+       "x": 0.62,
+       "y": -0.56,
+       "z": 1.16
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 48445,
+      "centrePx": [
+       1387,
+       1132
+      ],
+      "near": {
+       "x": -0.72,
+       "y": -2.25,
+       "z": 0.24
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8248,
+      "centrePx": [
+       217,
+       303
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.29,
+       "z": 1.15
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 8.08
+   },
+   "coupe_rear_right": {
+    "iou": 0.8719,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 27826,
+      "centrePx": [
+       1622,
+       1145
+      ],
+      "near": {
+       "x": -0.32,
+       "y": -1.87,
+       "z": 0.76
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 12371,
+      "centrePx": [
+       1108,
+       1412
+      ],
+      "near": {
+       "x": -0.46,
+       "y": 0.2,
+       "z": 0.14
+      },
+      "where": "door/cabin, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5886,
+      "centrePx": [
+       404,
+       1439
+      ],
+      "near": {
+       "x": -0.3,
+       "y": 2.07,
+       "z": 0.25
+      },
+      "where": "tail, sill/underside, centre"
+     }
+    ],
+    "anchorErrPx": 10.15
+   },
+   "coupe_left": {
+    "iou": 0.8808,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 17455,
+      "centrePx": [
+       1199,
+       1003
+      ],
+      "near": {
+       "x": -0.67,
+       "y": 0.51,
+       "z": 1.09
+      },
+      "where": "door/cabin, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 14034,
+      "centrePx": [
+       1006,
+       1394
+      ],
+      "near": {
+       "x": 0.62,
+       "y": 0.51,
+       "z": 0.15
+      },
+      "where": "door/cabin, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 11090,
+      "centrePx": [
+       320,
+       1134
+      ],
+      "near": {
+       "x": 0.93,
+       "y": -1.69,
+       "z": 0.72
+      },
+      "where": "nose, shoulder, left"
+     }
+    ],
+    "anchorErrPx": 9.72
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.8853
+ },
+ {
+  "round": 35,
+  "time": "2026-09-25 19:12",
+  "note": "coupe masks: shadow cuts redrawn on the true sill line",
+  "views": {
+   "street": {
+    "iou": 0.9205,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2398,
+      "centrePx": [
+       1032,
+       640
+      ],
+      "near": {
+       "x": -0.64,
+       "y": -2.27,
+       "z": 0.52
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 2243,
+      "centrePx": [
+       274,
+       491
+      ],
+      "near": {
+       "x": -0.31,
+       "y": 2.26,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1172,
+      "centrePx": [
+       441,
+       452
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 1.39,
+       "z": 1.12
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 6.23
+   },
+   "front_right": {
+    "iou": 0.868,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 79321,
+      "centrePx": [
+       1186,
+       388
+      ],
+      "near": {
+       "x": 0.62,
+       "y": -0.56,
+       "z": 1.16
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 48445,
+      "centrePx": [
+       1387,
+       1132
+      ],
+      "near": {
+       "x": -0.72,
+       "y": -2.25,
+       "z": 0.24
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8248,
+      "centrePx": [
+       217,
+       303
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.29,
+       "z": 1.15
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 8.08
+   },
+   "coupe_rear_right": {
+    "iou": 0.8699,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 27826,
+      "centrePx": [
+       1622,
+       1145
+      ],
+      "near": {
+       "x": -0.32,
+       "y": -1.87,
+       "z": 0.76
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 16828,
+      "centrePx": [
+       530,
+       1518
+      ],
+      "near": {
+       "x": -0.77,
+       "y": 1.88,
+       "z": 0.22
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6885,
+      "centrePx": [
+       1115,
+       1417
+      ],
+      "near": {
+       "x": -0.61,
+       "y": 0.26,
+       "z": 0.14
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 10.15
+   },
+   "coupe_left": {
+    "iou": 0.8889,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 17455,
+      "centrePx": [
+       1199,
+       1003
+      ],
+      "near": {
+       "x": -0.67,
+       "y": 0.51,
+       "z": 1.09
+      },
+      "where": "door/cabin, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 11090,
+      "centrePx": [
+       320,
+       1134
+      ],
+      "near": {
+       "x": 0.93,
+       "y": -1.69,
+       "z": 0.72
+      },
+      "where": "nose, shoulder, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 8651,
+      "centrePx": [
+       1647,
+       989
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.81,
+       "z": 1.1
+      },
+      "where": "tail, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 9.72
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.8868
+ },
+ {
+  "round": 36,
+  "time": "2026-09-25 19:33",
+  "note": "alternating camera refit + fitshape x2",
+  "views": {
+   "street": {
+    "iou": 0.9117,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 4786,
+      "centrePx": [
+       350,
+       473
+      ],
+      "near": {
+       "x": 0.45,
+       "y": 2.2,
+       "z": 0.92
+      },
+      "where": "tail, shoulder, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 2826,
+      "centrePx": [
+       797,
+       483
+      ],
+      "near": {
+       "x": 0.84,
+       "y": -1.71,
+       "z": 0.9
+      },
+      "where": "nose, shoulder, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 1782,
+      "centrePx": [
+       1034,
+       631
+      ],
+      "near": {
+       "x": -0.78,
+       "y": -2.23,
+       "z": 0.57
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 6.04
+   },
+   "front_right": {
+    "iou": 0.8533,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 96827,
+      "centrePx": [
+       1119,
+       379
+      ],
+      "near": {
+       "x": 0.61,
+       "y": -0.47,
+       "z": 1.22
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 37409,
+      "centrePx": [
+       1345,
+       1122
+      ],
+      "near": {
+       "x": -0.75,
+       "y": -2.28,
+       "z": 0.28
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 21045,
+      "centrePx": [
+       1841,
+       911
+      ],
+      "near": {
+       "x": 0.71,
+       "y": -2.3,
+       "z": 0.42
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 7.68
+   },
+   "coupe_rear_right": {
+    "iou": 0.8553,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 36053,
+      "centrePx": [
+       1622,
+       1127
+      ],
+      "near": {
+       "x": -0.42,
+       "y": -1.79,
+       "z": 0.87
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 15683,
+      "centrePx": [
+       534,
+       1521
+      ],
+      "near": {
+       "x": -0.77,
+       "y": 1.86,
+       "z": 0.2
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7201,
+      "centrePx": [
+       1119,
+       1417
+      ],
+      "near": {
+       "x": -0.61,
+       "y": 0.28,
+       "z": 0.14
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 10.04
+   },
+   "coupe_left": {
+    "iou": 0.8716,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 23327,
+      "centrePx": [
+       354,
+       1104
+      ],
+      "near": {
+       "x": 0.48,
+       "y": -2.04,
+       "z": 0.72
+      },
+      "where": "nose, shoulder, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 17872,
+      "centrePx": [
+       1553,
+       989
+      ],
+      "near": {
+       "x": -0.71,
+       "y": 1.58,
+       "z": 1.14
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 15392,
+      "centrePx": [
+       1219,
+       1009
+      ],
+      "near": {
+       "x": -0.69,
+       "y": 0.6,
+       "z": 1.1
+      },
+      "where": "door/cabin, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 8.98
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.873
+ },
+ {
+  "round": 37,
+  "time": "2026-09-25 20:54",
+  "note": "joint shape+camera fit, curves densified to 20 pts with smoothness penalty",
+  "views": {
+   "street": {
+    "iou": 0.9222,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2703,
+      "centrePx": [
+       1028,
+       645
+      ],
+      "near": {
+       "x": -0.66,
+       "y": -2.27,
+       "z": 0.44
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1959,
+      "centrePx": [
+       304,
+       475
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.31,
+       "z": 1.1
+      },
+      "where": "tail, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1165,
+      "centrePx": [
+       458,
+       450
+      ],
+      "near": {
+       "x": 0.79,
+       "y": 1.35,
+       "z": 1.13
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8984,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 38818,
+      "centrePx": [
+       1805,
+       945
+      ],
+      "near": {
+       "x": 0.51,
+       "y": -2.31,
+       "z": 0.14
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 29559,
+      "centrePx": [
+       1339,
+       1119
+      ],
+      "near": {
+       "x": -0.74,
+       "y": -2.19,
+       "z": 0.25
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 15406,
+      "centrePx": [
+       307,
+       293
+      ],
+      "near": {
+       "x": -0.53,
+       "y": 0.99,
+       "z": 1.18
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.8979,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 13719,
+      "centrePx": [
+       537,
+       1526
+      ],
+      "near": {
+       "x": -0.77,
+       "y": 1.88,
+       "z": 0.17
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 9975,
+      "centrePx": [
+       1476,
+       1085
+      ],
+      "near": {
+       "x": -0.73,
+       "y": -0.91,
+       "z": 0.98
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 6763,
+      "centrePx": [
+       1086,
+       1013
+      ],
+      "near": {
+       "x": -0.38,
+       "y": 0.16,
+       "z": 1.23
+      },
+      "where": "door/cabin, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 9.27
+   },
+   "coupe_left": {
+    "iou": 0.8939,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 17496,
+      "centrePx": [
+       1552,
+       989
+      ],
+      "near": {
+       "x": -0.75,
+       "y": 1.56,
+       "z": 1.17
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 15252,
+      "centrePx": [
+       1220,
+       1009
+      ],
+      "near": {
+       "x": -0.75,
+       "y": 0.58,
+       "z": 1.1
+      },
+      "where": "door/cabin, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 11363,
+      "centrePx": [
+       1364,
+       1530
+      ],
+      "near": {
+       "x": 0.77,
+       "y": 1.49,
+       "z": 0.01
+      },
+      "where": "rear wheel/intake, sill/underside, left"
+     }
+    ],
+    "anchorErrPx": 8.97
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9031
+ },
+ {
+  "round": 38,
+  "time": "2026-09-25 21:04",
+  "note": "masks: nothing below a tyre (anchor ellipse rule); red car cut from coupe_left",
+  "views": {
+   "street": {
+    "iou": 0.9304,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2703,
+      "centrePx": [
+       1028,
+       645
+      ],
+      "near": {
+       "x": -0.66,
+       "y": -2.27,
+       "z": 0.44
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1959,
+      "centrePx": [
+       304,
+       475
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.31,
+       "z": 1.1
+      },
+      "where": "tail, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1165,
+      "centrePx": [
+       458,
+       450
+      ],
+      "near": {
+       "x": 0.79,
+       "y": 1.35,
+       "z": 1.13
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8954,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 38818,
+      "centrePx": [
+       1805,
+       945
+      ],
+      "near": {
+       "x": 0.51,
+       "y": -2.31,
+       "z": 0.14
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 29559,
+      "centrePx": [
+       1339,
+       1119
+      ],
+      "near": {
+       "x": -0.74,
+       "y": -2.19,
+       "z": 0.25
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 15406,
+      "centrePx": [
+       307,
+       293
+      ],
+      "near": {
+       "x": -0.53,
+       "y": 0.99,
+       "z": 1.18
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.9112,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 9975,
+      "centrePx": [
+       1476,
+       1085
+      ],
+      "near": {
+       "x": -0.73,
+       "y": -0.91,
+       "z": 0.98
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 8407,
+      "centrePx": [
+       492,
+       1520
+      ],
+      "near": {
+       "x": -0.81,
+       "y": 1.96,
+       "z": 0.2
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 6763,
+      "centrePx": [
+       1086,
+       1013
+      ],
+      "near": {
+       "x": -0.38,
+       "y": 0.16,
+       "z": 1.23
+      },
+      "where": "door/cabin, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 9.27
+   },
+   "coupe_left": {
+    "iou": 0.8871,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 42282,
+      "centrePx": [
+       1405,
+       1015
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.14,
+       "z": 1.1
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7918,
+      "centrePx": [
+       697,
+       972
+      ],
+      "near": {
+       "x": 0.63,
+       "y": -0.47,
+       "z": 1.17
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5013,
+      "centrePx": [
+       291,
+       1176
+      ],
+      "near": {
+       "x": 0.65,
+       "y": -2.15,
+       "z": 0.51
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 8.97
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.906
+ },
+ {
+  "round": 39,
+  "time": "2026-09-25 21:16",
+  "note": "joint refit on corrected masks",
+  "views": {
+   "street": {
+    "iou": 0.9274,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 3235,
+      "centrePx": [
+       1027,
+       647
+      ],
+      "near": {
+       "x": -0.66,
+       "y": -2.25,
+       "z": 0.45
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1701,
+      "centrePx": [
+       302,
+       475
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 932,
+      "centrePx": [
+       627,
+       685
+      ],
+      "near": {
+       "x": -0.9,
+       "y": -0.33,
+       "z": 0.18
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.9043,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 39589,
+      "centrePx": [
+       1806,
+       942
+      ],
+      "near": {
+       "x": 0.49,
+       "y": -2.31,
+       "z": 0.15
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 29117,
+      "centrePx": [
+       1337,
+       1118
+      ],
+      "near": {
+       "x": -0.71,
+       "y": -2.17,
+       "z": 0.27
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9794,
+      "centrePx": [
+       1317,
+       371
+      ],
+      "near": {
+       "x": 0.73,
+       "y": -1.08,
+       "z": 0.99
+      },
+      "where": "front wheel, shoulder, left"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.9023,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 12548,
+      "centrePx": [
+       1464,
+       1077
+      ],
+      "near": {
+       "x": -0.73,
+       "y": -0.91,
+       "z": 0.99
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9442,
+      "centrePx": [
+       494,
+       1516
+      ],
+      "near": {
+       "x": -0.76,
+       "y": 1.94,
+       "z": 0.2
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7393,
+      "centrePx": [
+       1065,
+       1015
+      ],
+      "near": {
+       "x": -0.38,
+       "y": 0.22,
+       "z": 1.23
+      },
+      "where": "door/cabin, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 9.58
+   },
+   "coupe_left": {
+    "iou": 0.9127,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 23748,
+      "centrePx": [
+       1320,
+       1017
+      ],
+      "near": {
+       "x": 0.74,
+       "y": 1.31,
+       "z": 1.18
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7307,
+      "centrePx": [
+       719,
+       969
+      ],
+      "near": {
+       "x": 0.59,
+       "y": -0.44,
+       "z": 1.21
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 3267,
+      "centrePx": [
+       1769,
+       1042
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.19,
+       "z": 1.12
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 8.48
+   }
+  },
+  "pass": true,
+  "meanIoU": 0.9117
+ },
+ {
+  "round": 40,
+  "time": "2026-09-25 21:35",
+  "note": "regularised joint fit: observable curves only, trust region, realistic plan bounds",
+  "views": {
+   "street": {
+    "iou": 0.912,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 3226,
+      "centrePx": [
+       996,
+       585
+      ],
+      "near": {
+       "x": -0.61,
+       "y": -2.15,
+       "z": 0.74
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1852,
+      "centrePx": [
+       229,
+       546
+      ],
+      "near": {
+       "x": -0.88,
+       "y": 2.08,
+       "z": 0.82
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 1808,
+      "centrePx": [
+       308,
+       489
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.3,
+       "z": 0.84
+      },
+      "where": "tail, shoulder, centre"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8904,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 45110,
+      "centrePx": [
+       1793,
+       953
+      ],
+      "near": {
+       "x": 0.48,
+       "y": -2.3,
+       "z": 0.13
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 26848,
+      "centrePx": [
+       1319,
+       1117
+      ],
+      "near": {
+       "x": -0.74,
+       "y": -2.14,
+       "z": 0.26
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 19874,
+      "centrePx": [
+       1243,
+       352
+      ],
+      "near": {
+       "x": 0.69,
+       "y": -0.93,
+       "z": 1.0
+      },
+      "where": "front wheel, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.8899,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10813,
+      "centrePx": [
+       717,
+       1044
+      ],
+      "near": {
+       "x": -0.7,
+       "y": 1.31,
+       "z": 1.12
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10559,
+      "centrePx": [
+       490,
+       1512
+      ],
+      "near": {
+       "x": -0.82,
+       "y": 1.94,
+       "z": 0.22
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6476,
+      "centrePx": [
+       1510,
+       1103
+      ],
+      "near": {
+       "x": -0.74,
+       "y": -1.02,
+       "z": 0.94
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.24
+   },
+   "coupe_left": {
+    "iou": 0.902,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 17851,
+      "centrePx": [
+       1283,
+       1018
+      ],
+      "near": {
+       "x": -0.65,
+       "y": 0.81,
+       "z": 1.14
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 11630,
+      "centrePx": [
+       687,
+       982
+      ],
+      "near": {
+       "x": 0.56,
+       "y": -0.53,
+       "z": 1.15
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6430,
+      "centrePx": [
+       295,
+       1162
+      ],
+      "near": {
+       "x": 0.72,
+       "y": -2.07,
+       "z": 0.55
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 8.3
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.8986
+ },
+ {
+  "round": 41,
+  "time": "2026-09-25 21:45",
+  "note": "regularised joint fit, trust 0.00025",
+  "views": {
+   "street": {
+    "iou": 0.9173,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2019,
+      "centrePx": [
+       1029,
+       617
+      ],
+      "near": {
+       "x": -0.63,
+       "y": -2.23,
+       "z": 0.54
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1618,
+      "centrePx": [
+       231,
+       539
+      ],
+      "near": {
+       "x": -0.71,
+       "y": 2.27,
+       "z": 0.79
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 1519,
+      "centrePx": [
+       311,
+       487
+      ],
+      "near": {
+       "x": 0.08,
+       "y": 2.3,
+       "z": 0.85
+      },
+      "where": "tail, shoulder, centre"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8939,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 44707,
+      "centrePx": [
+       1793,
+       953
+      ],
+      "near": {
+       "x": 0.45,
+       "y": -2.31,
+       "z": 0.13
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 26848,
+      "centrePx": [
+       1319,
+       1117
+      ],
+      "near": {
+       "x": -0.69,
+       "y": -2.13,
+       "z": 0.24
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 16051,
+      "centrePx": [
+       1251,
+       349
+      ],
+      "near": {
+       "x": 0.69,
+       "y": -0.93,
+       "z": 1.05
+      },
+      "where": "front wheel, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.8943,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10136,
+      "centrePx": [
+       492,
+       1514
+      ],
+      "near": {
+       "x": -0.77,
+       "y": 1.96,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10036,
+      "centrePx": [
+       707,
+       1045
+      ],
+      "near": {
+       "x": -0.7,
+       "y": 1.33,
+       "z": 1.12
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8514,
+      "centrePx": [
+       1496,
+       1095
+      ],
+      "near": {
+       "x": -0.65,
+       "y": -1.06,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.24
+   },
+   "coupe_left": {
+    "iou": 0.9087,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 16946,
+      "centrePx": [
+       1292,
+       1019
+      ],
+      "near": {
+       "x": -0.69,
+       "y": 0.85,
+       "z": 1.11
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 11429,
+      "centrePx": [
+       696,
+       979
+      ],
+      "near": {
+       "x": 0.57,
+       "y": -0.51,
+       "z": 1.17
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5524,
+      "centrePx": [
+       293,
+       1167
+      ],
+      "near": {
+       "x": 0.94,
+       "y": -1.81,
+       "z": 0.59
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 8.19
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9035
+ },
+ {
+  "round": 42,
+  "time": "2026-09-25 21:58",
+  "note": "blunter nose plan (reference-informed), splitter raised, frunk shut line moved back",
+  "views": {
+   "street": {
+    "iou": 0.9187,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2865,
+      "centrePx": [
+       987,
+       575
+      ],
+      "near": {
+       "x": -0.3,
+       "y": -2.32,
+       "z": 0.6
+      },
+      "where": "nose, flank, centre"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 1654,
+      "centrePx": [
+       309,
+       489
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.28,
+       "z": 0.84
+      },
+      "where": "tail, shoulder, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1484,
+      "centrePx": [
+       232,
+       536
+      ],
+      "near": {
+       "x": -0.71,
+       "y": 2.26,
+       "z": 0.81
+      },
+      "where": "tail, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8955,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 44245,
+      "centrePx": [
+       1782,
+       970
+      ],
+      "near": {
+       "x": 0.45,
+       "y": -2.31,
+       "z": 0.16
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 19579,
+      "centrePx": [
+       1314,
+       1109
+      ],
+      "near": {
+       "x": -0.77,
+       "y": -2.15,
+       "z": 0.27
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 18134,
+      "centrePx": [
+       1258,
+       355
+      ],
+      "near": {
+       "x": 0.69,
+       "y": -0.93,
+       "z": 1.02
+      },
+      "where": "front wheel, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.8913,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10235,
+      "centrePx": [
+       492,
+       1513
+      ],
+      "near": {
+       "x": -0.82,
+       "y": 1.96,
+       "z": 0.22
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10178,
+      "centrePx": [
+       707,
+       1045
+      ],
+      "near": {
+       "x": -0.71,
+       "y": 1.35,
+       "z": 1.11
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7784,
+      "centrePx": [
+       1783,
+       1227
+      ],
+      "near": {
+       "x": -0.6,
+       "y": -2.31,
+       "z": 0.47
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 10.21
+   },
+   "coupe_left": {
+    "iou": 0.9041,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 16503,
+      "centrePx": [
+       1293,
+       1020
+      ],
+      "near": {
+       "x": -0.69,
+       "y": 0.85,
+       "z": 1.1
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 12057,
+      "centrePx": [
+       696,
+       980
+      ],
+      "near": {
+       "x": 0.6,
+       "y": -0.51,
+       "z": 1.17
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7322,
+      "centrePx": [
+       285,
+       1170
+      ],
+      "near": {
+       "x": 0.95,
+       "y": -1.85,
+       "z": 0.58
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 8.26
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9024
+ },
+ {
+  "round": 43,
+  "time": "2026-09-25 22:05",
+  "note": "lower-body curves (tuck, floor inset) fitted",
+  "views": {
+   "street": {
+    "iou": 0.9193,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2822,
+      "centrePx": [
+       990,
+       579
+      ],
+      "near": {
+       "x": -0.3,
+       "y": -2.32,
+       "z": 0.61
+      },
+      "where": "nose, flank, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1745,
+      "centrePx": [
+       230,
+       539
+      ],
+      "near": {
+       "x": -0.9,
+       "y": 2.04,
+       "z": 0.86
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 1476,
+      "centrePx": [
+       308,
+       488
+      ],
+      "near": {
+       "x": -0.0,
+       "y": 2.31,
+       "z": 0.86
+      },
+      "where": "tail, shoulder, centre"
+     }
+    ],
+    "anchorErrPx": 6.66
+   },
+   "front_right": {
+    "iou": 0.8937,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 43715,
+      "centrePx": [
+       1782,
+       971
+      ],
+      "near": {
+       "x": 0.45,
+       "y": -2.31,
+       "z": 0.17
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 23838,
+      "centrePx": [
+       1237,
+       356
+      ],
+      "near": {
+       "x": 0.67,
+       "y": -0.91,
+       "z": 1.01
+      },
+      "where": "front wheel, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 19975,
+      "centrePx": [
+       1310,
+       1109
+      ],
+      "near": {
+       "x": -0.79,
+       "y": -2.16,
+       "z": 0.25
+      },
+      "where": "nose, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 10.52
+   },
+   "coupe_rear_right": {
+    "iou": 0.8937,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 11179,
+      "centrePx": [
+       719,
+       1045
+      ],
+      "near": {
+       "x": -0.7,
+       "y": 1.33,
+       "z": 1.11
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10173,
+      "centrePx": [
+       492,
+       1513
+      ],
+      "near": {
+       "x": -0.76,
+       "y": 1.94,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8557,
+      "centrePx": [
+       1783,
+       1237
+      ],
+      "near": {
+       "x": -0.93,
+       "y": -1.94,
+       "z": 0.47
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 10.21
+   },
+   "coupe_left": {
+    "iou": 0.9024,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 14989,
+      "centrePx": [
+       1292,
+       1021
+      ],
+      "near": {
+       "x": 0.15,
+       "y": 1.08,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, centre"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 12626,
+      "centrePx": [
+       698,
+       981
+      ],
+      "near": {
+       "x": 0.62,
+       "y": -0.47,
+       "z": 1.17
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7434,
+      "centrePx": [
+       283,
+       1178
+      ],
+      "near": {
+       "x": 0.74,
+       "y": -2.12,
+       "z": 0.51
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 8.08
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9023
+ },
+ {
+  "round": 44,
+  "time": "2026-09-25 22:28",
+  "note": "tread-aware tyre anchors; cameras refit; regularised joint fit",
+  "views": {
+   "street": {
+    "iou": 0.8961,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 9924,
+      "centrePx": [
+       649,
+       463
+      ],
+      "near": {
+       "x": -0.19,
+       "y": -0.41,
+       "z": 1.18
+      },
+      "where": "door/cabin, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1841,
+      "centrePx": [
+       227,
+       549
+      ],
+      "near": {
+       "x": -0.93,
+       "y": 1.98,
+       "z": 0.85
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1769,
+      "centrePx": [
+       281,
+       465
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.76
+   },
+   "front_right": {
+    "iou": 0.8916,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 55969,
+      "centrePx": [
+       1750,
+       983
+      ],
+      "near": {
+       "x": 0.43,
+       "y": -2.31,
+       "z": 0.16
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 18244,
+      "centrePx": [
+       663,
+       265
+      ],
+      "near": {
+       "x": -0.06,
+       "y": 0.18,
+       "z": 1.21
+      },
+      "where": "door/cabin, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 10396,
+      "centrePx": [
+       1252,
+       1098
+      ],
+      "near": {
+       "x": -0.78,
+       "y": -2.16,
+       "z": 0.25
+      },
+      "where": "nose, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 26.7
+   },
+   "coupe_rear_right": {
+    "iou": 0.8909,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10821,
+      "centrePx": [
+       494,
+       1511
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.96,
+       "z": 0.22
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 9544,
+      "centrePx": [
+       1487,
+       1090
+      ],
+      "near": {
+       "x": -0.57,
+       "y": -1.06,
+       "z": 0.93
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9416,
+      "centrePx": [
+       707,
+       1043
+      ],
+      "near": {
+       "x": 0.57,
+       "y": 0.97,
+       "z": 1.13
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 9.81
+   },
+   "coupe_left": {
+    "iou": 0.9018,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 15797,
+      "centrePx": [
+       1737,
+       1135
+      ],
+      "near": {
+       "x": -0.72,
+       "y": 2.23,
+       "z": 0.86
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 15217,
+      "centrePx": [
+       710,
+       982
+      ],
+      "near": {
+       "x": 0.49,
+       "y": -0.49,
+       "z": 1.14
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5696,
+      "centrePx": [
+       1064,
+       1409
+      ],
+      "near": {
+       "x": 0.79,
+       "y": 0.77,
+       "z": 0.18
+      },
+      "where": "rear wheel/intake, sill/underside, left"
+     }
+    ],
+    "anchorErrPx": 7.72
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.8951
+ },
+ {
+  "round": 45,
+  "time": "2026-09-25 22:39",
+  "note": "outer-sidewall anchors, vertical-only ground; cameras refit; regularised joint fit",
+  "views": {
+   "street": {
+    "iou": 0.9245,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2508,
+      "centrePx": [
+       1014,
+       600
+      ],
+      "near": {
+       "x": -0.5,
+       "y": -2.28,
+       "z": 0.67
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1719,
+      "centrePx": [
+       230,
+       545
+      ],
+      "near": {
+       "x": -0.94,
+       "y": 2.04,
+       "z": 0.84
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1516,
+      "centrePx": [
+       291,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.31,
+       "z": 1.1
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.99
+   },
+   "front_right": {
+    "iou": 0.8953,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 42541,
+      "centrePx": [
+       1781,
+       974
+      ],
+      "near": {
+       "x": 0.45,
+       "y": -2.31,
+       "z": 0.16
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 22585,
+      "centrePx": [
+       1214,
+       346
+      ],
+      "near": {
+       "x": 0.64,
+       "y": -0.83,
+       "z": 1.05
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 18906,
+      "centrePx": [
+       1307,
+       1108
+      ],
+      "near": {
+       "x": -0.84,
+       "y": -2.22,
+       "z": 0.33
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9003,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 11062,
+      "centrePx": [
+       491,
+       1510
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.96,
+       "z": 0.23
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7556,
+      "centrePx": [
+       706,
+       1039
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 0.95,
+       "z": 1.17
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7328,
+      "centrePx": [
+       1498,
+       1098
+      ],
+      "near": {
+       "x": -0.72,
+       "y": -1.02,
+       "z": 0.95
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.2
+   },
+   "coupe_left": {
+    "iou": 0.9058,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14271,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.56,
+       "y": -0.49,
+       "z": 1.16
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 6189,
+      "centrePx": [
+       1658,
+       1076
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.98,
+       "z": 0.98
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5802,
+      "centrePx": [
+       282,
+       1177
+      ],
+      "near": {
+       "x": 0.61,
+       "y": -2.3,
+       "z": 0.48
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.4
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9065
+ },
+ {
+  "round": 46,
+  "time": "2026-09-25 22:45",
+  "note": "intakes: closed deep ducts (no see-through silhouette holes); splitter lip raised",
+  "views": {
+   "street": {
+    "iou": 0.9219,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2508,
+      "centrePx": [
+       1014,
+       600
+      ],
+      "near": {
+       "x": -0.5,
+       "y": -2.28,
+       "z": 0.67
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1719,
+      "centrePx": [
+       230,
+       545
+      ],
+      "near": {
+       "x": -0.94,
+       "y": 2.04,
+       "z": 0.84
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1516,
+      "centrePx": [
+       291,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.24,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.99
+   },
+   "front_right": {
+    "iou": 0.8943,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 52362,
+      "centrePx": [
+       1757,
+       981
+      ],
+      "near": {
+       "x": 0.5,
+       "y": -2.25,
+       "z": 0.2
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 22585,
+      "centrePx": [
+       1214,
+       346
+      ],
+      "near": {
+       "x": 0.64,
+       "y": -0.83,
+       "z": 1.05
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8919,
+      "centrePx": [
+       1290,
+       1098
+      ],
+      "near": {
+       "x": -0.84,
+       "y": -2.19,
+       "z": 0.33
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.8996,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 11062,
+      "centrePx": [
+       491,
+       1510
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.96,
+       "z": 0.23
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7556,
+      "centrePx": [
+       706,
+       1039
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 0.95,
+       "z": 1.17
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7328,
+      "centrePx": [
+       1498,
+       1098
+      ],
+      "near": {
+       "x": -0.72,
+       "y": -1.02,
+       "z": 0.95
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.2
+   },
+   "coupe_left": {
+    "iou": 0.9049,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14271,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.56,
+       "y": -0.49,
+       "z": 1.16
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 6189,
+      "centrePx": [
+       1658,
+       1076
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.98,
+       "z": 0.98
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6183,
+      "centrePx": [
+       282,
+       1175
+      ],
+      "near": {
+       "x": 0.61,
+       "y": -2.3,
+       "z": 0.48
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.4
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9052
+ },
+ {
+  "round": 47,
+  "time": "2026-09-25 23:01",
+  "note": "recess housings pushed along the cut axis (no duct through the fender)",
+  "views": {
+   "street": {
+    "iou": 0.9219,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2508,
+      "centrePx": [
+       1014,
+       600
+      ],
+      "near": {
+       "x": -0.5,
+       "y": -2.28,
+       "z": 0.67
+      },
+      "where": "nose, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1719,
+      "centrePx": [
+       230,
+       545
+      ],
+      "near": {
+       "x": -0.94,
+       "y": 2.04,
+       "z": 0.84
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1516,
+      "centrePx": [
+       291,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.24,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.99
+   },
+   "front_right": {
+    "iou": 0.8943,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 52363,
+      "centrePx": [
+       1757,
+       981
+      ],
+      "near": {
+       "x": 0.5,
+       "y": -2.25,
+       "z": 0.2
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 22585,
+      "centrePx": [
+       1214,
+       346
+      ],
+      "near": {
+       "x": 0.64,
+       "y": -0.83,
+       "z": 1.05
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 8919,
+      "centrePx": [
+       1290,
+       1098
+      ],
+      "near": {
+       "x": -0.84,
+       "y": -2.19,
+       "z": 0.33
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9002,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 11062,
+      "centrePx": [
+       491,
+       1510
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 1.96,
+       "z": 0.23
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7556,
+      "centrePx": [
+       706,
+       1039
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 0.95,
+       "z": 1.17
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7328,
+      "centrePx": [
+       1498,
+       1098
+      ],
+      "near": {
+       "x": -0.72,
+       "y": -1.02,
+       "z": 0.95
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.2
+   },
+   "coupe_left": {
+    "iou": 0.9055,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14271,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.56,
+       "y": -0.49,
+       "z": 1.16
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 6189,
+      "centrePx": [
+       1658,
+       1076
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.98,
+       "z": 0.98
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 5802,
+      "centrePx": [
+       282,
+       1177
+      ],
+      "near": {
+       "x": 0.61,
+       "y": -2.3,
+       "z": 0.48
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.4
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9055
+ },
+ {
+  "round": 48,
+  "time": "2026-09-25 23:14",
+  "note": "wedge nose: separate lower-body plan rounding fitted; lamp cut kept to the corner; bigger front grille",
+  "views": {
+   "street": {
+    "iou": 0.9211,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2658,
+      "centrePx": [
+       1012,
+       597
+      ],
+      "near": {
+       "x": -0.39,
+       "y": -2.32,
+       "z": 0.63
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1698,
+      "centrePx": [
+       229,
+       546
+      ],
+      "near": {
+       "x": -0.92,
+       "y": 2.07,
+       "z": 0.83
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1523,
+      "centrePx": [
+       291,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.98
+   },
+   "front_right": {
+    "iou": 0.8958,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 51286,
+      "centrePx": [
+       1755,
+       985
+      ],
+      "near": {
+       "x": 0.43,
+       "y": -2.27,
+       "z": 0.18
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 19627,
+      "centrePx": [
+       1251,
+       354
+      ],
+      "near": {
+       "x": 0.65,
+       "y": -0.91,
+       "z": 1.03
+      },
+      "where": "front wheel, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9935,
+      "centrePx": [
+       325,
+       790
+      ],
+      "near": {
+       "x": -0.87,
+       "y": 0.43,
+       "z": 0.19
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9008,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10856,
+      "centrePx": [
+       492,
+       1511
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.92,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7634,
+      "centrePx": [
+       1495,
+       1096
+      ],
+      "near": {
+       "x": -0.62,
+       "y": -1.06,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7471,
+      "centrePx": [
+       707,
+       1039
+      ],
+      "near": {
+       "x": 0.65,
+       "y": 0.95,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.905,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14157,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -0.51,
+       "z": 1.15
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10200,
+      "centrePx": [
+       1709,
+       1094
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 2.13,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7063,
+      "centrePx": [
+       283,
+       1179
+      ],
+      "near": {
+       "x": 0.59,
+       "y": -2.31,
+       "z": 0.47
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.4
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9057
+ },
+ {
+  "round": 49,
+  "time": "2026-09-25 23:23",
+  "note": "front_right: convertible rear deck ignored (front half still scored)",
+  "views": {
+   "street": {
+    "iou": 0.9211,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2658,
+      "centrePx": [
+       1012,
+       597
+      ],
+      "near": {
+       "x": -0.39,
+       "y": -2.32,
+       "z": 0.63
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1698,
+      "centrePx": [
+       229,
+       546
+      ],
+      "near": {
+       "x": -0.92,
+       "y": 2.07,
+       "z": 0.83
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1523,
+      "centrePx": [
+       291,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.98
+   },
+   "front_right": {
+    "iou": 0.9014,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 51286,
+      "centrePx": [
+       1755,
+       985
+      ],
+      "near": {
+       "x": 0.43,
+       "y": -2.27,
+       "z": 0.18
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 19627,
+      "centrePx": [
+       1251,
+       354
+      ],
+      "near": {
+       "x": 0.65,
+       "y": -0.91,
+       "z": 1.03
+      },
+      "where": "front wheel, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9935,
+      "centrePx": [
+       325,
+       790
+      ],
+      "near": {
+       "x": -0.87,
+       "y": 0.43,
+       "z": 0.19
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9008,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10856,
+      "centrePx": [
+       492,
+       1511
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.92,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7634,
+      "centrePx": [
+       1495,
+       1096
+      ],
+      "near": {
+       "x": -0.62,
+       "y": -1.06,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7471,
+      "centrePx": [
+       707,
+       1039
+      ],
+      "near": {
+       "x": 0.65,
+       "y": 0.95,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.905,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14157,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -0.51,
+       "z": 1.15
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10200,
+      "centrePx": [
+       1709,
+       1094
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 2.13,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7063,
+      "centrePx": [
+       283,
+       1179
+      ],
+      "near": {
+       "x": 0.59,
+       "y": -2.31,
+       "z": 0.47
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.4
+   }
+  },
+  "pass": true,
+  "meanIoU": 0.9071
+ },
+ {
+  "round": 50,
+  "time": "2026-09-25 23:33",
+  "note": "joint refit with the convertible deck ignored",
+  "views": {
+   "street": {
+    "iou": 0.9241,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2608,
+      "centrePx": [
+       1013,
+       598
+      ],
+      "near": {
+       "x": -0.42,
+       "y": -2.31,
+       "z": 0.64
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 2080,
+      "centrePx": [
+       228,
+       544
+      ],
+      "near": {
+       "x": -0.93,
+       "y": 2.07,
+       "z": 0.83
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1509,
+      "centrePx": [
+       292,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.24,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.96
+   },
+   "front_right": {
+    "iou": 0.8977,
+    "gate": 0.9,
+    "pass": false,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 51413,
+      "centrePx": [
+       1756,
+       983
+      ],
+      "near": {
+       "x": 0.2,
+       "y": -2.31,
+       "z": 0.29
+      },
+      "where": "nose, sill/underside, centre"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 24646,
+      "centrePx": [
+       1225,
+       353
+      ],
+      "near": {
+       "x": 0.66,
+       "y": -0.87,
+       "z": 1.02
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10081,
+      "centrePx": [
+       326,
+       790
+      ],
+      "near": {
+       "x": -0.86,
+       "y": 0.45,
+       "z": 0.19
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9033,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10896,
+      "centrePx": [
+       491,
+       1511
+      ],
+      "near": {
+       "x": -0.8,
+       "y": 1.92,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 8038,
+      "centrePx": [
+       703,
+       1041
+      ],
+      "near": {
+       "x": 0.62,
+       "y": 0.95,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6747,
+      "centrePx": [
+       1478,
+       1093
+      ],
+      "near": {
+       "x": -0.71,
+       "y": -0.95,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.9083,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 17632,
+      "centrePx": [
+       661,
+       997
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -0.64,
+       "z": 1.11
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6598,
+      "centrePx": [
+       281,
+       1183
+      ],
+      "near": {
+       "x": 0.61,
+       "y": -2.31,
+       "z": 0.46
+      },
+      "where": "nose, flank, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 5075,
+      "centrePx": [
+       1635,
+       1070
+      ],
+      "near": {
+       "x": -0.73,
+       "y": 1.94,
+       "z": 1.0
+      },
+      "where": "tail, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 4.37
+   }
+  },
+  "pass": false,
+  "meanIoU": 0.9084
+ },
+ {
+  "round": 51,
+  "time": "2026-09-25 23:34",
+  "note": "round-49 shape with the round-50 cameras",
+  "views": {
+   "street": {
+    "iou": 0.9215,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2676,
+      "centrePx": [
+       1011,
+       596
+      ],
+      "near": {
+       "x": -0.38,
+       "y": -2.32,
+       "z": 0.63
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1706,
+      "centrePx": [
+       229,
+       546
+      ],
+      "near": {
+       "x": -0.92,
+       "y": 2.07,
+       "z": 0.83
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1509,
+      "centrePx": [
+       292,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.96
+   },
+   "front_right": {
+    "iou": 0.9015,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 51330,
+      "centrePx": [
+       1755,
+       985
+      ],
+      "near": {
+       "x": 0.43,
+       "y": -2.27,
+       "z": 0.18
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 19602,
+      "centrePx": [
+       1251,
+       354
+      ],
+      "near": {
+       "x": 0.65,
+       "y": -0.91,
+       "z": 1.03
+      },
+      "where": "front wheel, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9866,
+      "centrePx": [
+       325,
+       790
+      ],
+      "near": {
+       "x": -0.87,
+       "y": 0.43,
+       "z": 0.19
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9008,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10856,
+      "centrePx": [
+       492,
+       1511
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.92,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7634,
+      "centrePx": [
+       1495,
+       1096
+      ],
+      "near": {
+       "x": -0.62,
+       "y": -1.06,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7471,
+      "centrePx": [
+       707,
+       1039
+      ],
+      "near": {
+       "x": 0.65,
+       "y": 0.95,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.905,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14165,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -0.51,
+       "z": 1.15
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10193,
+      "centrePx": [
+       1709,
+       1094
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 2.13,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7068,
+      "centrePx": [
+       283,
+       1179
+      ],
+      "near": {
+       "x": 0.59,
+       "y": -2.31,
+       "z": 0.47
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.37
+   }
+  },
+  "pass": true,
+  "meanIoU": 0.9072
+ },
+ {
+  "round": 52,
+  "time": "2026-09-25 23:41",
+  "note": "final shipped model: export re-import checked",
+  "views": {
+   "street": {
+    "iou": 0.9215,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 2676,
+      "centrePx": [
+       1011,
+       596
+      ],
+      "near": {
+       "x": -0.38,
+       "y": -2.32,
+       "z": 0.63
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1706,
+      "centrePx": [
+       229,
+       546
+      ],
+      "near": {
+       "x": -0.92,
+       "y": 2.07,
+       "z": 0.83
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1509,
+      "centrePx": [
+       292,
+       469
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.29,
+       "z": 1.11
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.96
+   },
+   "front_right": {
+    "iou": 0.9015,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 51330,
+      "centrePx": [
+       1755,
+       985
+      ],
+      "near": {
+       "x": 0.43,
+       "y": -2.27,
+       "z": 0.18
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 19602,
+      "centrePx": [
+       1251,
+       354
+      ],
+      "near": {
+       "x": 0.65,
+       "y": -0.91,
+       "z": 1.03
+      },
+      "where": "front wheel, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 9866,
+      "centrePx": [
+       325,
+       790
+      ],
+      "near": {
+       "x": -0.87,
+       "y": 0.43,
+       "z": 0.19
+      },
+      "where": "door/cabin, sill/underside, right"
+     }
+    ],
+    "anchorErrPx": 7.82
+   },
+   "coupe_rear_right": {
+    "iou": 0.9008,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 10856,
+      "centrePx": [
+       492,
+       1511
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.92,
+       "z": 0.21
+      },
+      "where": "tail, sill/underside, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7634,
+      "centrePx": [
+       1495,
+       1096
+      ],
+      "near": {
+       "x": -0.62,
+       "y": -1.06,
+       "z": 0.96
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 7471,
+      "centrePx": [
+       707,
+       1039
+      ],
+      "near": {
+       "x": 0.65,
+       "y": 0.95,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.905,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 14165,
+      "centrePx": [
+       702,
+       983
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -0.51,
+       "z": 1.15
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 10193,
+      "centrePx": [
+       1709,
+       1094
+      ],
+      "near": {
+       "x": -0.79,
+       "y": 2.13,
+       "z": 0.95
+      },
+      "where": "tail, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7068,
+      "centrePx": [
+       283,
+       1179
+      ],
+      "near": {
+       "x": 0.59,
+       "y": -2.31,
+       "z": 0.47
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.37
+   }
+  },
+  "pass": true,
+  "meanIoU": 0.9072
  }
 ]

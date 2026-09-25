@@ -143,6 +143,10 @@ def checks(run, spec, parts, st, log):
     json.dump(c, open(os.path.join(run, 'checks', 'crush.json'), 'w'), indent=2)
     n = export.silhouette_tris(os.path.join(run, 'checks', 'model_tris.npz'))
     export.silhouette_tris(os.path.join(run, 'checks', 'model_tris_lo.npz'), ratio=0.12)
+    # parts the body curves do not shape (wheels, mirrors, spoiler, blades, exhaust): critique.py fitshape
+    # rasterises these once and re-lofts only the body per candidate
+    export.silhouette_tris(os.path.join(run, 'checks', 'model_tris_fixed.npz'), ratio=0.25,
+                           include=lambda o: o.get('zstack') in ('wheel', 'mirror', 'exterior'))
     log['doors'] = {k: v['pass'] for k, v in d['parts'].items()}
     log['doorsPass'] = d['pass']
     log['doorFailures'] = {k: v['fail'] for k, v in d['parts'].items() if v['fail']}

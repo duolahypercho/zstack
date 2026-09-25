@@ -181,10 +181,15 @@ def housing(piece, part, mats, depth):
     if not keep:       # boolean lost the slot split: fall back to faces facing the car centre
         keep = {f.index for f in bm.faces if f.normal.dot(-f.calc_center_median()) > 0}
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.index not in keep], context='FACES')
-    n = Vector()
-    for f in bm.faces:
-        n += f.normal * f.calc_area()
-    n = n.normalized() if n.length else Vector((0, 0, -1))
+    # push straight into the car along the cut axis. (The mean face normal of an aperture that wraps
+    # a corner points diagonally; a deep duct pushed along it exits through the neighbouring panel.)
+    lo, hi = part['range']
+    if part['plane'] == 'YZ':
+        n = Vector((-1.0, 0.0, 0.0)) if part.get('side', 0) >= 0 else Vector((1.0, 0.0, 0.0))
+    elif part['plane'] == 'XZ':
+        n = Vector((0.0, 1.0, 0.0)) if (lo + hi) / 2 < 0 else Vector((0.0, -1.0, 0.0))
+    else:
+        n = Vector((0.0, 0.0, -1.0))
     ext = bmesh.ops.extrude_face_region(bm, geom=list(bm.faces))
     moved = [g for g in ext['geom'] if isinstance(g, bmesh.types.BMVert)]
     bmesh.ops.translate(bm, vec=n * depth, verts=moved)
@@ -192,7 +197,9 @@ def housing(piece, part, mats, depth):
     ctr = sum((v.co for v in moved), Vector()) / max(1, len(moved))
     for v in moved:
         v.co = ctr + (v.co - ctr) * part.get('taper', 0.9)
-    if part.get('openBack'):     # intakes that breathe into the car: walls only, fans visible behind
+    if part.get('openBack'):     # walls only: see-through, so only for openings nothing looks through
+        # (an open-backed intake punches a hole in the car's silhouette; prefer a deep closed duct
+        #  with the fan inside it, see parts.json 'depth')
         back = {f for f in bm.faces if all(v in set(moved) for v in f.verts)}
         bmesh.ops.delete(bm, geom=list(back), context='FACES')
     bmesh.ops.reverse_faces(bm, faces=bm.faces)

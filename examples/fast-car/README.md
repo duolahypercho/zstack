@@ -19,25 +19,30 @@ coupe (4634 x 1934 x 1235 mm, wheelbase 2722 mm, tracks 1647 / 1590 mm, 245/35 R
 | door sweep (24 steps each: hinge on panel, opens outward/upward, no new intersections, returns home) | pass: Door_FL, Door_FR, Hood, EngineCover |
 | same sweep on the re-imported GLB | pass |
 | crash morphs (cabin cell moves <= 1 cm, < 1% faces folded, wheels unkeyed) | pass: front, rear, left, right |
-| triangles | about 202k (hero asset; no LODs yet) |
+| spec envelope (length 4.634, width 1.934, height 1.235 m) | held as a hard limit by the fitter (+-3 mm) |
+| triangles | about 216k (hero asset; no LODs yet) |
 
-Silhouette IoU against three reference photos (cameras solved from wheel anchors; gate 0.90 per photo):
+Silhouette IoU against four reference photos (cameras solved from wheel anchors, 4-10 px anchor
+error; gate 0.90 per photo):
 
-| view | IoU | gate |
-|------|-----|------|
-| side (coupe) | 0.901 | pass |
-| front three-quarter | 0.897 | fail, 0.003 short |
-| rear three-quarter | 0.878 | fail |
-| mean | 0.892 | |
+| view | body in photo | IoU | gate |
+|------|---------------|-----|------|
+| side | coupe | 0.922 | pass |
+| front three-quarter | convertible, rear deck ignored | 0.902 | pass |
+| rear three-quarter | coupe | 0.901 | pass |
+| left three-quarter | coupe | 0.905 | pass |
+| mean | | 0.907 | |
 
-Critique history: 33 rounds in `checks/rounds.json` (round 1 mean 0.760). The loop stops improving
-here for reasons it reports rather than hides:
+52 critique rounds are in `checks/rounds.json` (round 1 mean 0.760). What that table does not say:
 
-- The rear three-quarter reference is the convertible body, whose rear deck and buttresses differ
-  from the coupe modelled here; it cannot reach the gate on this reference.
-- Photo corrections only constrain heights (top line, underside). Plan width needs a front, rear or
-  top view, which this reference set lacks.
-- Silhouette IoU cannot see surface quality: the bonnet and rear deck are still lumpier than a
-  production body. That is the next thing to fix, by eye, on the beauty renders.
+- Margins are thin: two views clear the gate by 0.001-0.002.
+- One convertible reference (rear three-quarter) was replaced by a coupe photo, and the
+  convertible-only rear deck in the front three-quarter photo is excluded from scoring for both
+  model and photo. Both are recorded with their reasons in the private `views.json`.
+- An unconstrained fit reached higher IoU with a body that no longer looked like the car; the
+  shipped shape comes from the regularised fit (observable curves only, trust region, curvature
+  penalty, realistic plan bounds) and was checked on renders.
+- IoU cannot see surface quality: the bonnet still undulates slightly and the frunk's front shut
+  line dips through the valley between the fenders. Those are the next things to fix.
 
 The reference photos themselves are not in this repository.

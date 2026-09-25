@@ -190,6 +190,7 @@ def build(spec, mats, coll=None):
         ]
         for ob, mat, par in parts:
             C.set_material(ob, mat)
+            ob['zstack'] = 'wheel'
             if not left:       # outboard face points to the car's outside on both sides
                 ob.data.transform(Matrix.Scale(-1, 4, (1, 0, 0)))
                 ob.data.flip_normals()
