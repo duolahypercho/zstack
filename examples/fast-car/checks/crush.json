@@ -3,26 +3,26 @@
   "keys": {
     "Crush_Front": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 10,
-      "flipFraction": 0.00015,
-      "pass": true
-    },
-    "Crush_Rear": {
-      "cabinMaxM": 0.0,
-      "flippedFaces": 3,
-      "flipFraction": 4e-05,
-      "pass": true
-    },
-    "Crush_Left": {
-      "cabinMaxM": 0.0,
       "flippedFaces": 11,
       "flipFraction": 0.00016,
       "pass": true
     },
+    "Crush_Rear": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 7,
+      "flipFraction": 0.0001,
+      "pass": true
+    },
+    "Crush_Left": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 12,
+      "flipFraction": 0.00017,
+      "pass": true
+    },
     "Crush_Right": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 15,
-      "flipFraction": 0.00022,
+      "flippedFaces": 17,
+      "flipFraction": 0.00025,
       "pass": true
     }
   }

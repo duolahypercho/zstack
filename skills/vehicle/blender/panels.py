@@ -574,6 +574,22 @@ def paint_zones(objs, zones, mats):
         lo, hi = z['range']
         poly = poly_of(z)
         n = 0
+        # the zone's outline, as world-space cutting planes (each polygon edge swept along the
+        # zone's axis): the faces near the zone are split on them first, so the colour boundary is
+        # a straight line and not the staircase of whole faces
+        planes = []
+        for i in range(len(poly)):
+            (u0, v0), (u1, v1) = poly[i], poly[(i + 1) % len(poly)]
+            p0 = Vector((0.0, 0.0, 0.0))
+            p0[a], p0[b] = u0, v0
+            d = Vector((0.0, 0.0, 0.0))
+            d[a], d[b] = u1 - u0, v1 - v0
+            ax = Vector((0.0, 0.0, 0.0))
+            ax[c] = 1.0
+            nrm = d.cross(ax)
+            if nrm.length > 1e-9:
+                planes.append((p0, nrm.normalized()))
+        us, vs = [q[0] for q in poly], [q[1] for q in poly]
         for ob in objs:
             me = ob.data
             names = [m.name if m else None for m in me.materials]
@@ -582,6 +598,20 @@ def paint_zones(objs, zones, mats):
                 names.append(mat.name)
             slot = names.index(mat.name)
             mw = ob.matrix_world
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            bm.transform(mw)
+            for p0, nrm in planes:
+                near = [f for f in bm.faces if f.material_index == 0 and
+                        lo - 0.05 <= f.calc_center_median()[c] <= hi + 0.05 and
+                        min(us) - 0.05 <= f.calc_center_median()[a] <= max(us) + 0.05 and
+                        min(vs) - 0.05 <= f.calc_center_median()[b] <= max(vs) + 0.05]
+                if near:
+                    geom = list({e for f in near for e in f.edges}) + near + list({v for f in near for v in f.verts})
+                    bmesh.ops.bisect_plane(bm, geom=geom, plane_co=p0, plane_no=nrm)
+            bm.transform(mw.inverted())
+            bm.to_mesh(me)
+            bm.free()
             for f in me.polygons:
                 if f.material_index != 0:
                     continue

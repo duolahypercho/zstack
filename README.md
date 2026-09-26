@@ -7,9 +7,6 @@ A skill never claims a result a check has not proven.
 <!-- catalog:begin -->
 | Skill | What it does |
 |-------|--------------|
-| [`building`](skills/building/SKILL.md) | Build one real building for a game end to end: open data (footprint, LiDAR height, assessor roll) into a spec, metadata tags, a look-only all-angle r…. |
-| [`interior`](skills/interior/SKILL.md) | Furnish one building's floors for a game from its metadata and interior research: public indoor references first (look-only), otherwise image-model c…. |
-| [`street-block`](skills/street-block/SKILL.md) | Make a 3D game's city (Three.js or any engine) look indistinguishable from street-level photos, block by block. |
 | [`vehicle`](skills/vehicle/SKILL.md) | Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. |
 <!-- catalog:end -->
 

@@ -39,6 +39,17 @@ then corrected their proportions:
 reference photos. They are ray-cast through the solved cameras onto the body. The paint is solid
 white with a gloss black roof and A-pillars.
 
+**4. Full-angle references.** Eight photos of the same model now describe it: the five scored photos
+below, two white show-floor three-quarter shots kept for comparison only, and a straight-on rear
+shot used as an elevation. Straight-on front and high front shots are also on hand, not yet used.
+All are Wikimedia Commons, licensed CC0, CC BY or CC BY-SA, and kept outside this repository.
+
+The straight-on rear photo supplied the rear, in metres:
+- lamp outlines 9 cm further inboard and 5 cm lower;
+- a black vent at each lower corner;
+- two exhaust tips at each corner, where the model had four in the middle;
+- a black lower fascia with a mesh diffuser panel.
+
 ## Results (checks, not impressions)
 
 | check | result |
@@ -50,16 +61,22 @@ white with a gloss black roof and A-pillars.
 | body cage | 730 vertices, all quads, 4 poles (end-cap corners), 0 open edges |
 | triangles | about 213k (hero asset; no LODs yet) |
 
-Silhouette IoU against four reference photos (gate 0.90 per photo). Both columns are scored with the
-same reference masks:
+Silhouette IoU against five reference photos (gate 0.90 per photo):
 
-| view | body in photo | previous (lofted curves) | now (hand-shaped) |
-|------|---------------|--------------------------|-------------------|
-| side | coupe | 0.921 | 0.911 |
-| front three-quarter | convertible, rear deck ignored | 0.902 | 0.913 |
-| rear three-quarter | coupe | 0.912 | 0.912 |
-| left three-quarter | coupe | 0.906 | 0.901 |
-| mean | | 0.910 | 0.909 |
+| view | body in photo | IoU |
+|------|---------------|-----|
+| side (right) | coupe | 0.911 |
+| right profile | coupe, phone photo across a narrow street | 0.901 |
+| front three-quarter | convertible, rear deck ignored | 0.913 |
+| rear three-quarter | coupe | 0.906 |
+| left three-quarter | coupe | 0.901 |
+| mean | | 0.906 |
+
+Before this round, the body was scored with the same masks on the first four photos: 0.921, 0.902,
+0.912 and 0.906. Adding the right profile first needed a correct camera for it. The automatic solve
+chose a 103° lens with the camera 2.9 m away. The photo's EXIF gives a 27 mm-equivalent phone
+lens, about 67°, and a camera seeded from that and the wheel geometry puts the phone about 1.1 m
+high, 4.1 m from the flank.
 
 Silhouettes are a tie. The previous body had already been fitted to them. The change is in what IoU
 cannot see. In the front three-quarter photo, feature-outline IoU (model feature vs the outline
@@ -80,7 +97,13 @@ What that does not say:
 - **Mask.** The rear three-quarter mask counted ground shadow under the rear overhang as car.
   That was fixed with a `maskFix` `sub` polygon, whose reason is recorded in the private
   `views.json`. The previous body was re-scored with the same mask for the table above.
-- **Thin margin.** The left three-quarter view clears the gate by 0.0005.
+- **Thin margins.** The left three-quarter view clears the gate by 0.0005, and the right profile by
+  0.001.
+- **Cameras disagree.** The two right-side photos disagree about the nose by about 15 cm: one
+  reads it too long, the other too short. Shape edits that satisfied one failed the other, so the
+  nose was left between them.
+- **Rear surfaces.** The rear deck and hatch are rounder than the real car's, and the outer exhaust
+  pair sits at the edge of the model's rounded rear corners.
 - **Far headlamp.** It is the mirror of the traced near one, and it still lands about 60 px off
   the photo's far lamp. The camera or the body is not yet consistent across the car's width.
 - **Surfaces.** The nose is softer and rounder than the real car's crisp beak. The zebra renders

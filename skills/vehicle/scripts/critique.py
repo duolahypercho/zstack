@@ -109,6 +109,11 @@ def load_views(a, include_skipped=False):
         views = {k: v for k, v in views.items() if not v.get('skip')}
     if a['views']:
         views = {k: v for k, v in views.items() if k in a['views']}
+    else:
+        # "kind": "visual": a reference for side-by-side comparison whose camera cannot be solved
+        # reliably (one wheel in frame, tight telephoto crop). Not scored or gated unless named
+        # with --views; its reason stays in views.json
+        views = {k: v for k, v in views.items() if v.get('kind') != 'visual'}
     return views
 
 
@@ -207,13 +212,46 @@ def predict_anchors(names, spec, rv, tv, f, cx, cy):
 
 # ---------------------------------------------------------------- masks
 
+def focal_prior(a, v, w):
+    """Known focal length in pixels, or None. views.json "focalPx" wins; otherwise EXIF, when the
+    stored image is the camera's full frame (same pixel width as recorded): f = width x f35 / 36.
+    A solved camera that ignores the lens can trade distance for field of view (a close, very wide
+    camera and a far, normal one give similar silhouettes) and land in the wrong one."""
+    if v.get('focalPx'):
+        return float(v['focalPx'])
+    try:
+        from PIL import Image
+        im = Image.open(os.path.join(a['refs'], v['image']))
+        ex = im.getexif().get_ifd(0x8769)
+        f35 = ex.get(0xA405)                       # FocalLengthIn35mmFilm
+        exif_w = ex.get(0xA002)                    # ExifImageWidth
+        aspect = im.size[0] / im.size[1]
+        native = any(abs(aspect / r - 1) < 0.01 for r in (4 / 3, 3 / 2, 16 / 9, 2.0, 19.5 / 9, 20 / 9))
+        # only a full, unresampled frame: a crop keeps its EXIF but not the sensor's field of view
+        if f35 and native and (exif_w is None or int(exif_w) == im.size[0]) and im.size[0] == w:
+            return w * float(f35) / 36.0
+    except Exception:
+        return None
+    return None
+
+
+GC_MAX = 2000
+
+
 def photo_mask(a, name, v):
     img = cv2.imread(os.path.join(a['refs'], v['image']))
     h, w = img.shape[:2]
     cache = os.path.join(a['private'], f'mask_{name}.png')
     if os.path.exists(cache) and os.path.getmtime(cache) > os.path.getmtime(os.path.join(a['refs'], 'views.json')):
         return img, cv2.imread(cache, cv2.IMREAD_GRAYSCALE) > 127
-    if v.get('kind', 'photo') == 'ortho':
+    if v.get('outline'):
+        # a traced silhouette: for photos GrabCut cannot separate (a white car on a light floor
+        # with another white car behind it), the outline is the reference
+        m = np.zeros((h, w), np.uint8)
+        polys = v['outline'] if isinstance(v['outline'][0][0], (list, tuple)) else [v['outline']]
+        for poly in polys:
+            cv2.fillPoly(m, [np.array(poly, np.int32)], 1)
+    elif v.get('kind', 'photo') == 'ortho':
         # generated view on a plain background: threshold against the border colour
         border = np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]).astype(np.float32)
         bg = np.median(border, axis=0)
@@ -228,7 +266,16 @@ def photo_mask(a, name, v):
             if k.startswith('hub_'):
                 cv2.circle(gc, (int(u), int(vv)), 6, cv2.GC_FGD, -1)
         bgd, fgd = np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64)
-        cv2.grabCut(img, gc, None, bgd, fgd, 6, cv2.GC_INIT_WITH_MASK)
+        # GrabCut is slow at camera resolution (minutes on a 14 MP frame): segment a copy at most
+        # GC_MAX px across and scale the labels back; the corrections below still act at full size
+        k = min(1.0, GC_MAX / max(w, h))
+        if k < 1.0:
+            small = cv2.resize(img, (int(w * k), int(h * k)), interpolation=cv2.INTER_AREA)
+            gcs = cv2.resize(gc, (small.shape[1], small.shape[0]), interpolation=cv2.INTER_NEAREST)
+            cv2.grabCut(small, gcs, None, bgd, fgd, 6, cv2.GC_INIT_WITH_MASK)
+            gc = cv2.resize(gcs, (w, h), interpolation=cv2.INTER_NEAREST)
+        else:
+            cv2.grabCut(img, gc, None, bgd, fgd, 6, cv2.GC_INIT_WITH_MASK)
         m = np.isin(gc, (cv2.GC_FGD, cv2.GC_PR_FGD)).astype(np.uint8)
     for poly in v.get('maskFix', {}).get('add', []):
         cv2.fillPoly(m, [np.array(poly, np.int32)], 1)
@@ -364,7 +411,21 @@ def iou(a, b):
 
 # ---------------------------------------------------------------- camera fit
 
-def fit_view(name, v, spec, verts, faces, mask):
+def seed_camera(seed):
+    """views.json "cameraSeed": {"position": [x, y, z], "target": [x, y, z], "rollDeg": r} in the car
+    frame -> OpenCV rvec, tvec (x right, y down, z forward; image up is world +Z before the roll)."""
+    Cw = np.asarray(seed['position'], float)
+    z = np.asarray(seed['target'], float) - Cw
+    z /= np.linalg.norm(z)
+    x = np.cross(z, np.array([0.0, 0.0, 1.0]))
+    x /= np.linalg.norm(x)
+    y = np.cross(z, x)
+    r = math.radians(seed.get('rollDeg', 0.0))
+    Rm = np.array([[math.cos(r), -math.sin(r), 0], [math.sin(r), math.cos(r), 0], [0, 0, 1]]) @ np.stack([x, y, z])
+    return cv2.Rodrigues(Rm)[0].ravel(), -Rm @ Cw
+
+
+def fit_view(name, v, spec, verts, faces, mask, fprior=None):
     h, w = mask.shape
     cx, cy = w / 2, h / 2
     names = [k for k in v['anchors'] if k.split('_')[0] in ('hub', 'ground', 'tyreFront', 'tyreRear')]
@@ -395,7 +456,12 @@ def fit_view(name, v, spec, verts, faces, mask):
         return residual(pred, img, ground)
 
     # 1. scan focal length: PnP on the anchors at each focal, score by silhouette overlap
-    for f in np.geomspace(0.38 * w, 3.5 * w, 44):          # hfov ~105 deg .. ~16 deg
+    fp = fprior
+
+    def fpen(f):                          # the lens is known to within ~8%: beyond that, pay heavily
+        return 0.0 if not fp else 5.0 * max(0.0, abs(math.log(f / fp)) - 0.08)
+    scan = np.geomspace(0.92 * fp, 1.08 * fp, 9) if fp else np.geomspace(0.38 * w, 3.5 * w, 44)
+    for f in scan:          # without a known lens: hfov ~105 deg .. ~16 deg
         K = np.array([[f, 0, cx], [0, f, cy], [0, 0, 1]])
         try:
             ok, rv, tv = cv2.solvePnP(obj, img, K, None, flags=cv2.SOLVEPNP_SQPNP)
@@ -414,6 +480,19 @@ def fit_view(name, v, spec, verts, faces, mask):
             s = s & ~ig_small
         e = anchor_err(rv, tv, f)
         cands.append((iou(s, m_small) - 4 * e / max(w, h), f, rv.copy(), tv.copy(), e))
+    seed = v.get('cameraSeed')
+    seeded = None
+    if seed:
+        # a start built from the photo's known geometry (where the photographer stood, what the lens
+        # centre points at, the horizon's tilt): anchors alone can leave the camera's height and
+        # distance ambiguous, and the automatic starts can settle in the wrong basin
+        f = fp or float(seed.get('focalPx', w))
+        rv, tv = seed_camera(seed)
+        s = raster(verts, faces, rv, tv, f, cx, cy, (w, h), sc)
+        if ig_small is not None:
+            s = s & ~ig_small
+        e = anchor_err(rv, tv, f)
+        seeded = (e, f, rv, tv, (cx, cy))
     if not cands:
         raise RuntimeError(f'{name}: no camera fits the anchors')
     cands.sort(key=lambda c: -c[0])
@@ -437,14 +516,17 @@ def fit_view(name, v, spec, verts, faces, mask):
 
         def acost(x, rv0=rv0, tv0=tv0, f0=f0, d0=d0):
             return anchor_err(rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0, f0 * math.exp(x[6] * 0.05), *pp(x)) \
-                + 50 * pp_prior(x)
+                + 50 * pp_prior(x) + 50 * fpen(f0 * math.exp(x[6] * 0.05))
         r = minimize(acost, np.zeros(9), method='Powell', options={'maxiter': 6000, 'xtol': 1e-4, 'ftol': 1e-7})
         x = r.x
         seeds.append((r.fun, f0 * math.exp(x[6] * 0.05), rv0 + x[:3] * 0.02, tv0 + x[3:6] * 0.02 * d0, pp(x)))
     seeds.sort(key=lambda t: t[0])
     err0 = seeds[0][0]
     best = None
-    for _, f0, rv0, tv0, (cx0, cy0) in seeds[:2]:
+    # a geometric seed goes straight to the joint refinement: the anchors-only stage can slide a
+    # seed along the direction the anchors cannot see (height vs pitch) into the wrong basin
+    starts = seeds[:2] + ([seeded] if seeded else [])
+    for _, f0, rv0, tv0, (cx0, cy0) in starts:
         dist = np.linalg.norm(tv0)
 
         def unpack(x, rv0=rv0, tv0=tv0, f0=f0, dist=dist, cx0=cx0, cy0=cy0):
@@ -463,7 +545,8 @@ def fit_view(name, v, spec, verts, faces, mask):
             hfov = 2 * math.degrees(math.atan(w / 2 / f))
             prior = max(0.0, 16 - hfov) + max(0.0, hfov - 105)       # plausible lenses, phone wide included
             off = max(0.0, abs(pcx - w / 2) / w - 0.25) + max(0.0, abs(pcy - h / 2) / h - 0.25)
-            return (1 - iou(s, m_small)) + 4 * e / max(w, h) + 0.2 * max(0.0, e - tol) / tol + 0.05 * prior + 2 * off
+            return (1 - iou(s, m_small)) + 4 * e / max(w, h) + 0.2 * max(0.0, e - tol) / tol + 0.05 * prior + 2 * off \
+                + fpen(f)
         res = minimize(cost, np.zeros(9), method='Powell', options={'maxiter': 4000, 'xtol': 1e-3, 'ftol': 1e-6})
         if best is None or res.fun < best[0]:
             best = (res.fun, unpack(res.x))
@@ -980,7 +1063,10 @@ def main(argv):
         for name, v in views.items():
             _, m = photo_mask(a, name, v)
             t = time.time()
-            cams[name] = fit_view(name, v, spec, verts_lo, faces_lo, m)
+            fp = focal_prior(a, v, m.shape[1])
+            cams[name] = fit_view(name, v, spec, verts_lo, faces_lo, m, fprior=fp)
+            if fp:
+                cams[name]['focalPrior'] = round(fp, 1)
             print(name, 'focal', cams[name]['focalPx'], 'hfov', cams[name]['hfovDeg'], 'anchor err px',
                   cams[name]['anchorErrPxBeforeRefine'], '->', cams[name]['anchorErrPx'], f'({time.time() - t:.0f}s)')
         json.dump(cams, open(cam_path, 'w'), indent=1)

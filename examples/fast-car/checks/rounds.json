@@ -10052,5 +10052,264 @@
   },
   "pass": true,
   "meanIoU": 0.909
+ },
+ {
+  "round": 57,
+  "time": "2026-09-27 04:23",
+  "note": "full-angle references: + right profile (EXIF focal, geometric camera seed); rear lamps, corner vents, paired exhaust and black diffuser measured on a straight-on rear photo",
+  "views": {
+   "street": {
+    "iou": 0.9108,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 4580,
+      "centrePx": [
+       991,
+       586
+      ],
+      "near": {
+       "x": -0.37,
+       "y": -2.21,
+       "z": 0.63
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 2385,
+      "centrePx": [
+       313,
+       489
+      ],
+      "near": {
+       "x": 0.15,
+       "y": 2.31,
+       "z": 0.81
+      },
+      "where": "tail, shoulder, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 1310,
+      "centrePx": [
+       297,
+       474
+      ],
+      "near": {
+       "x": 0.0,
+       "y": 2.26,
+       "z": 1.12
+      },
+      "where": "tail, roof/top line, centre"
+     }
+    ],
+    "anchorErrPx": 5.86
+   },
+   "front_right": {
+    "iou": 0.9126,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 23195,
+      "centrePx": [
+       1363,
+       1111
+      ],
+      "near": {
+       "x": -0.71,
+       "y": -2.24,
+       "z": 0.22
+      },
+      "where": "nose, sill/underside, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 22683,
+      "centrePx": [
+       1817,
+       959
+      ],
+      "near": {
+       "x": 0.56,
+       "y": -2.27,
+       "z": 0.13
+      },
+      "where": "nose, sill/underside, left"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 17441,
+      "centrePx": [
+       1229,
+       343
+      ],
+      "near": {
+       "x": 0.72,
+       "y": -0.72,
+       "z": 1.03
+      },
+      "where": "door/cabin, roof/top line, left"
+     }
+    ],
+    "anchorErrPx": 7.97
+   },
+   "coupe_rear_right": {
+    "iou": 0.9063,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 8474,
+      "centrePx": [
+       713,
+       1040
+      ],
+      "near": {
+       "x": 0.61,
+       "y": 0.94,
+       "z": 1.16
+      },
+      "where": "rear wheel/intake, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 7310,
+      "centrePx": [
+       1543,
+       1105
+      ],
+      "near": {
+       "x": -0.79,
+       "y": -1.15,
+       "z": 0.91
+      },
+      "where": "front wheel, shoulder, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 4649,
+      "centrePx": [
+       1782,
+       1263
+      ],
+      "near": {
+       "x": -0.94,
+       "y": -1.94,
+       "z": 0.39
+      },
+      "where": "nose, flank, right"
+     }
+    ],
+    "anchorErrPx": 10.1
+   },
+   "coupe_left": {
+    "iou": 0.9005,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too small",
+      "areaPx": 17829,
+      "centrePx": [
+       680,
+       993
+      ],
+      "near": {
+       "x": 0.63,
+       "y": -0.51,
+       "z": 1.1
+      },
+      "where": "door/cabin, roof/top line, left"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6726,
+      "centrePx": [
+       1255,
+       1023
+      ],
+      "near": {
+       "x": 0.2,
+       "y": 0.99,
+       "z": 1.14
+      },
+      "where": "rear wheel/intake, roof/top line, centre"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 6322,
+      "centrePx": [
+       305,
+       1178
+      ],
+      "near": {
+       "x": 0.58,
+       "y": -2.21,
+       "z": 0.49
+      },
+      "where": "nose, flank, left"
+     }
+    ],
+    "anchorErrPx": 4.37
+   },
+   "side_right_orange": {
+    "iou": 0.9011,
+    "gate": 0.9,
+    "pass": true,
+    "worst": [
+     {
+      "kind": "model too big",
+      "areaPx": 55402,
+      "centrePx": [
+       3797,
+       1256
+      ],
+      "near": {
+       "x": -0.34,
+       "y": -2.3,
+       "z": 0.31
+      },
+      "where": "nose, flank, right"
+     },
+     {
+      "kind": "model too big",
+      "areaPx": 47508,
+      "centrePx": [
+       302,
+       1142
+      ],
+      "near": {
+       "x": -0.89,
+       "y": 2.12,
+       "z": 0.63
+      },
+      "where": "tail, flank, right"
+     },
+     {
+      "kind": "model too small",
+      "areaPx": 32214,
+      "centrePx": [
+       869,
+       767
+      ],
+      "near": {
+       "x": -0.78,
+       "y": 1.46,
+       "z": 1.01
+      },
+      "where": "rear wheel/intake, roof/top line, right"
+     }
+    ],
+    "anchorErrPx": 18.1
+   }
+  },
+  "pass": true,
+  "meanIoU": 0.9063
  }
 ]

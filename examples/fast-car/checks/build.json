@@ -20,11 +20,11 @@
       "misses": 1
     }
   },
-  "shell_s": 1.7,
-  "openings_s": 3.0,
-  "recesses_s": 4.3,
+  "shell_s": 1.2,
+  "openings_s": 1.4,
+  "recesses_s": 4.5,
   "panelsMissing": [],
-  "panels_s": 1.6,
+  "panels_s": 2.0,
   "panelsSeparated": [
     "Door_FL",
     "Door_FR",
@@ -32,17 +32,18 @@
     "Hood"
   ],
   "paintZones": {
-    "Roof": 1150,
-    "APillar_L": 229,
-    "APillar_R": 229
+    "Roof": 1200,
+    "APillar_L": 235,
+    "APillar_R": 235,
+    "RearFascia": 1012
   },
   "sealsTrimmed": {
     "Glass_Windscreen_Seal": 32,
     "Glass_Sail_FL_Seal": 115,
     "Glass_Sail_FR_Seal": 121
   },
-  "crushKeyed": 152,
-  "triangles": 212224,
+  "crushKeyed": 156,
+  "triangles": 215800,
   "doors": {
     "Door_FL": true,
     "Door_FR": true,
@@ -55,43 +56,43 @@
   "crush": {
     "Crush_Front": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 10,
-      "flipFraction": 0.00015,
-      "pass": true
-    },
-    "Crush_Rear": {
-      "cabinMaxM": 0.0,
-      "flippedFaces": 3,
-      "flipFraction": 4e-05,
-      "pass": true
-    },
-    "Crush_Left": {
-      "cabinMaxM": 0.0,
       "flippedFaces": 11,
       "flipFraction": 0.00016,
       "pass": true
     },
+    "Crush_Rear": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 7,
+      "flipFraction": 0.0001,
+      "pass": true
+    },
+    "Crush_Left": {
+      "cabinMaxM": 0.0,
+      "flippedFaces": 12,
+      "flipFraction": 0.00017,
+      "pass": true
+    },
     "Crush_Right": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 15,
-      "flipFraction": 0.00022,
+      "flippedFaces": 17,
+      "flipFraction": 0.00025,
       "pass": true
     }
   },
-  "silhouetteTris": 193264,
+  "silhouetteTris": 196840,
   "fairness": {
-    "p50Deg": 0.289,
-    "p95Deg": 16.933,
-    "over3Deg": 0.2116,
-    "vertices": 15550
+    "p50Deg": 0.281,
+    "p95Deg": 17.575,
+    "over3Deg": 0.2193,
+    "vertices": 14188
   },
   "export": {
     "glb": "fast-car.glb",
-    "bytes": 12251644,
-    "triangles": 212224,
+    "bytes": 12719532,
+    "triangles": 215800,
     "reimport": {
-      "objects": 212,
-      "crushKeyedMeshes": 152,
+      "objects": 216,
+      "crushKeyedMeshes": 156,
       "doorsPass": true,
       "pivots": [
         "Door_FL.001",
@@ -101,6 +102,6 @@
       ]
     }
   },
-  "seconds": 122.9,
+  "seconds": 447.6,
   "pass": true
 }

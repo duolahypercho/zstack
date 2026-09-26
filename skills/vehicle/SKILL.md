@@ -104,6 +104,24 @@ visibly tilts the solved camera.
   GrabCut dropped, `sub` for shadows). Then `critique.py fit` solves each photo's camera from the
   anchors and refines roll and focal length on the silhouette (`checks/cameras.json`).
 
+Four camera and mask aids, each recorded in `views.json` with its source:
+- **Known lens.** Wheel anchors on one side of the car cannot tell a close, very wide camera from
+  a far, normal one; the solve can land in the wrong basin with a good anchor error. `focalPx`
+  pins the focal (the fit keeps it within 8%). Without it, EXIF `FocalLengthIn35mmFilm` is used
+  when the file is the camera's full, unresampled frame (native aspect, EXIF width = image width).
+  For a crop, work the focal out from the camera's sensor, e.g. `70 mm x 6720 px / 36 mm`, and
+  record how.
+- **`cameraSeed`**: `{"position", "target", "rollDeg"}` in the car frame. It is a start built from
+  the photo's geometry. The distance comes from the wheel-plane scale (rim lips, wheelbase) and the
+  focal, the roll from the hub rows, and the height is the photographer's. The seed goes straight
+  to the joint anchor + silhouette refinement.
+- **`outline`**: a traced silhouette polygon, used as the mask instead of GrabCut. For photos
+  GrabCut cannot separate (a white car on a light floor, another car behind), trace it from a
+  gridded view (about 50 points, ±20 px on a 5000 px frame). GrabCut itself runs on a copy at most
+  2000 px across.
+- **Ground shadow.** Masks keep the shadow under the sill. Find the real sill edge in a zoomed,
+  contrast-stretched crop and `sub` everything below it between the tyres.
+
 ## 4. Describe the car
 
 `runs/<id>/curves.json` (template `<skill>/templates/curves.json`) describes the body by its
@@ -169,10 +187,17 @@ wheel, sets `"facing": "front"` (or `"rear"`). The back of a deep opening (grill
 uses `"housing": "Void"`, which reads as a hole rather than a dark surface. That is the trade's
 rule: paint deep cavities dark instead of modelling them.
 
+Measure rear and front details on a straight-on photo, used as an elevation. Scale by the spec
+width across the corners and the height above the tyre contact line; in a rear view, image-left
+is the car's left (+X). Then write the lamp and vent outlines as `XZ` polygons and the exhaust tips
+as positions. The example's paired corner exhausts, corner vents and black diffuser came from one
+rear photo; before that the model had four tips in the middle.
+
 Two-tone paint: `materials` overrides any palette entry (e.g. `"Paint": {"color": [0.78, 0.79,
 0.78], "metallic": 0.05}` for a solid white). `paintZones` gives painted-skin faces inside a prism
 (same `plane` / `poly` / `range` / `mirror` as any part) another material, such as `Paint_Accent`
-for a gloss black roof or pillars.
+for a gloss black roof or pillars, or `Trim_Black` for a black lower fascia. The faces near a
+zone are split along its outline first, so the colour edge is a straight line.
 
 Two rules the checks will enforce:
 - a shut line must cross the wall, not graze it: ahead of the side glass a door's top edge runs
@@ -374,6 +399,11 @@ Reference hygiene (in `views.json`), each recorded with its reason:
   that shows a different body (a convertible's deck in an otherwise usable front view).
 - `skip`: a reference of a different body altogether. Never skip or ignore a view because it scores
   badly.
+- `"kind": "visual"` + `visualReason`: the right car and a useful angle, but a camera that cannot
+  be solved reliably, such as a telephoto show-floor shot with one wheel in frame. It is not fitted,
+  scored or gated unless named with `--views`, and it is kept for side-by-side comparison.
+  Straight-on front, rear and top photos serve as elevations: scale by the spec width and the tyre
+  contact line, and measure lamps, vents and exhausts in metres (next section).
 
 Intakes are closed, deep ducts (fans sit inside them, visible through the grille): an
 open-backed recess is see-through and punches a hole in the silhouette.
