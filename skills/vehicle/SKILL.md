@@ -47,6 +47,10 @@ width per axle, door count and type (`conventional`, `scissor`, `butterfly`, `gu
 - An original design: borrow the numbers of a real vehicle of the same class, and say which.
 - Never reproduce badges, logos or other brand marks on a public asset.
 
+Optional `"rim": {"spokes": 5, "twin": true, "splitDeg": [hub, mid, rim], "width": [hub, rim]}`
+styles the wheels. A split spoke starts as one arm at the hub and fans out: the example uses
+1.5° / 7° / 12° half-angles and 13 / 9 mm arm half-widths. Match the design in the reference photo.
+
 ## 2. Reference views
 
 **Image model available** (`python3 <skill>/scripts/gen_refs.py probe` prints `available`):
@@ -133,6 +137,12 @@ so it cannot slice whatever lies behind a sloped lamp. `flipX` mirrors a part tr
 right side into the left-side definition, so it can carry `"mirror": true`. Check it by symmetry:
 the mirrored twin must land on the other side's feature in the same photo; if it misses, the camera
 or the body there is wrong. Trace from zoomed, gridded crops, and never commit the photo itself.
+
+A front- or rear-facing (`XZ`) part recedes toward the car's middle by default. A part that
+faces the other way for where it sits, such as a forward-facing side intake ahead of a rear
+wheel, sets `"facing": "front"` (or `"rear"`). The back of a deep opening (grille, intake duct)
+uses `"housing": "Void"`, which reads as a hole rather than a dark surface. That is the trade's
+rule: paint deep cavities dark instead of modelling them.
 
 Two-tone paint: `materials` overrides any palette entry (e.g. `"Paint": {"color": [0.78, 0.79,
 0.78], "metallic": 0.05}` for a solid white). `paintZones` gives painted-skin faces inside a prism
@@ -268,6 +278,9 @@ What the example's hand-shaping taught:
 - **Fix reference errors, not the gate.** A mask that counts ground shadow as car is a reference
   error: fix it with a `maskFix` `sub` polygon and write down the reason. Then re-score the
   previous version with the same mask, so the comparison stays fair.
+- **A dent is not a scoop.** Pushing cage columns straight inward to make a door scoop gave a dent,
+  with bullseye rings in the stripe renders, not a clean concave sweep, and it hid part of the
+  traced intake. It was rejected. A concave panel needs its own loops laid along the sweep.
 
 ## 6. Build and rig
 

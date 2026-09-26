@@ -46,8 +46,10 @@ def tyre_profile(R, W, rim_r):
     return pts
 
 
-def rim(name, R, W, spokes=5, twin=True, coll=None, dish=-0.022):
-    """Rim barrel + lip + tapered twin spokes + hub, outboard face at +X (local)."""
+def rim(name, R, W, spokes=5, twin=True, coll=None, dish=-0.022, split_deg=(6.3, 6.3, 6.3), width=(0.021, 0.014)):
+    """Rim barrel + lip + tapered twin spokes + hub, outboard face at +X (local).
+    split_deg: half-angle between the two arms of a twin spoke at the hub, mid-spoke and rim (a
+    split spoke starts as one and fans out); width: arm half-width at the hub and at the rim."""
     h = W / 2
     lip = 0.018
     bm = bmesh.new()
@@ -69,15 +71,17 @@ def rim(name, R, W, spokes=5, twin=True, coll=None, dish=-0.022):
     arms = []
     for i in range(spokes):
         base = 2 * math.pi * i / spokes
-        arms += [base - 0.11, base + 0.11] if twin else [base]
-    for ang in arms:
-        c, s = math.cos(ang), math.sin(ang)
-        d = Vector((0, c, s))
-        side = Vector((0, -s, c))
-        w0, w1 = 0.021, 0.014
+        arms += [(base, -1), (base, 1)] if twin else [(base, 0)]
+    for base, sgn in arms:
+        w0, w1 = width
         x_hub, x_rim = h - 0.004 + dish, h - 0.024
         quads = []
-        for r_, w_, x_ in ((hub_r * 0.9, w0, x_hub), (R * 0.62, (w0 + w1) / 2, (x_hub + x_rim) / 2 + 0.006), (R - 0.016, w1, x_rim)):
+        for (r_, w_, x_), sd in zip(((hub_r * 0.9, w0, x_hub), (R * 0.62, (w0 + w1) / 2, (x_hub + x_rim) / 2 + 0.006),
+                                     (R - 0.016, w1, x_rim)), split_deg):
+            ang = base + sgn * math.radians(sd)
+            c, s = math.cos(ang), math.sin(ang)
+            d = Vector((0, c, s))
+            side = Vector((0, -s, c))
             ctr = d * r_ + Vector((x_, 0, 0))
             depth = 0.03
             quads.append([bm.verts.new(ctr + side * sw + Vector((dx, 0, 0)))
@@ -103,6 +107,21 @@ def rim(name, R, W, spokes=5, twin=True, coll=None, dish=-0.022):
     for p in ob.data.polygons:
         p.use_smooth = abs(p.normal.x) < 0.9
     return ob
+
+
+def _rim_style(spec):
+    """spec.json "rim": {"spokes": 5, "twin": true, "splitDeg": [hub, mid, rim], "width": [hub, rim]}."""
+    st = spec.get('rim', {})
+    out = {}
+    if 'spokes' in st:
+        out['spokes'] = st['spokes']
+    if 'twin' in st:
+        out['twin'] = st['twin']
+    if 'splitDeg' in st:
+        out['split_deg'] = tuple(st['splitDeg'])
+    if 'width' in st:
+        out['width'] = tuple(st['width'])
+    return out
 
 
 def disc(name, r, coll=None, thick=0.032, holes=True):
@@ -184,7 +203,7 @@ def build(spec, mats, coll=None):
         C.parent_keep(spin, steer)
         parts = [
             (C.revolve(f'Tyre_{corner}', tyre_profile(R, W, rim_r), 128, 'X', coll), mats['Tyre'], spin),
-            (rim(f'Rim_{corner}', rim_r, W * 0.92, coll=coll), mats['Rim'], spin),
+            (rim(f'Rim_{corner}', rim_r, W * 0.92, coll=coll, **_rim_style(spec)), mats['Rim'], spin),
             (disc(f'Disc_{corner}', rim_r * (0.80 if front else 0.78), coll), mats['Brake'], spin),
             (caliper(f'Caliper_{corner}', rim_r * (0.80 if front else 0.78), coll), mats['Caliper'], steer),
         ]

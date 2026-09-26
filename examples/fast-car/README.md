@@ -84,8 +84,11 @@ What that does not say:
 - **Far headlamp.** It is the mirror of the traced near one, and it still lands about 60 px off
   the photo's far lamp. The camera or the body is not yet consistent across the car's width.
 - **Surfaces.** The nose is softer and rounder than the real car's crisp beak. The zebra renders
-  still show bullseyes on the fender pods and the hood. The doors lack the real car's deep
-  scallop, and the wheels are a generic 5-spoke. The grille lattice reads grey in bright light.
+  still show bullseyes on the fender pods and the hood. The door has no scoop: an attempt made by
+  pushing cage columns inward dented the door, so it was rejected.
+- **Wheels and grille.** The wheels are split 5-spoke in gunmetal (`spec.json` `rim`), closer to
+  the photo but not its exact design. The grille and intakes read as black openings (`Void`
+  housings). The lattice behind them is barely visible.
 - **References.** One convertible reference (rear three-quarter) was replaced by a coupe
   photo. The convertible-only rear deck in the front three-quarter photo is excluded from scoring
   for both model and photo.

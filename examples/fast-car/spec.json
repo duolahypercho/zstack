@@ -24,5 +24,6 @@
   "frunk": true,
   "engine": "mid",
   "design": "Low pointed nose with slim swept headlamps, cab-forward canopy, deep side air intakes behind the doors, engine visible under a glass rear hatch, angular split tail lamps, quad centre exhaust, 5-spoke wheels. No badges or brand marks.",
-  "proportionsFrom": "Published dimensions of a current production mid-engine two-seat sports coupe: 4634 x 1934 x 1235 mm, wheelbase 2722 mm, tracks 1647/1590 mm, tyres 245/35 R19 and 305/30 R20."
+  "proportionsFrom": "Published dimensions of a current production mid-engine two-seat sports coupe: 4634 x 1934 x 1235 mm, wheelbase 2722 mm, tracks 1647/1590 mm, tyres 245/35 R19 and 305/30 R20.",
+  "rim": {"spokes": 5, "twin": true, "splitDeg": [1.5, 7.0, 12.0], "width": [0.013, 0.009]}
 }

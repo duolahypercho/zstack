@@ -147,6 +147,8 @@ PALETTE = {
     'Interior_Trim': ({'color': (0.06, 0.06, 0.065), 'metallic': 0.6, 'rough': 0.28}, None),
     'Screen': ({'color': (0.01, 0.01, 0.012), 'rough': 0.05, 'emission': (0.35, 0.55, 0.9), 'strength': 1.2}, None),
     'Underbody': ({'color': (0.02, 0.02, 0.02), 'rough': 0.8}, None),
+    # the back of a deep opening (grille, intake duct): reads as a hole, not a dark surface
+    'Void': ({'color': (0.0, 0.0, 0.0), 'rough': 1.0, 'spec': 0.0}, None),
     'Mirror': ({'color': (0.95, 0.95, 0.95), 'metallic': 1.0, 'rough': 0.0}, None),
 }
 

@@ -20,11 +20,11 @@
       "misses": 1
     }
   },
-  "shell_s": 0.4,
-  "openings_s": 1.0,
-  "recesses_s": 1.6,
+  "shell_s": 1.7,
+  "openings_s": 3.0,
+  "recesses_s": 4.3,
   "panelsMissing": [],
-  "panels_s": 0.7,
+  "panels_s": 1.6,
   "panelsSeparated": [
     "Door_FL",
     "Door_FR",
@@ -42,7 +42,7 @@
     "Glass_Sail_FR_Seal": 121
   },
   "crushKeyed": 152,
-  "triangles": 212824,
+  "triangles": 212224,
   "doors": {
     "Door_FL": true,
     "Door_FR": true,
@@ -55,8 +55,8 @@
   "crush": {
     "Crush_Front": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 11,
-      "flipFraction": 0.00016,
+      "flippedFaces": 10,
+      "flipFraction": 0.00015,
       "pass": true
     },
     "Crush_Rear": {
@@ -78,7 +78,7 @@
       "pass": true
     }
   },
-  "silhouetteTris": 193864,
+  "silhouetteTris": 193264,
   "fairness": {
     "p50Deg": 0.289,
     "p95Deg": 16.933,
@@ -87,8 +87,8 @@
   },
   "export": {
     "glb": "fast-car.glb",
-    "bytes": 12368312,
-    "triangles": 212824,
+    "bytes": 12251644,
+    "triangles": 212224,
     "reimport": {
       "objects": 212,
       "crushKeyedMeshes": 152,
@@ -101,6 +101,6 @@
       ]
     }
   },
-  "seconds": 79.8,
+  "seconds": 122.9,
   "pass": true
 }

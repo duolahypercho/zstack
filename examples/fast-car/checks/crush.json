@@ -3,8 +3,8 @@
   "keys": {
     "Crush_Front": {
       "cabinMaxM": 0.0,
-      "flippedFaces": 11,
-      "flipFraction": 0.00016,
+      "flippedFaces": 10,
+      "flipFraction": 0.00015,
       "pass": true
     },
     "Crush_Rear": {

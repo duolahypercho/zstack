@@ -308,6 +308,16 @@ def _layer(ob, inner):
     return [p for p in ob.data.polygons if (p.material_index == 1) == inner]
 
 
+def _faces_front(part):
+    """Whether an XZ-plane part faces forward (recedes toward +Y). Inferred from its position
+    (front half faces front), or set with "facing": "front" | "rear", e.g. a forward-facing side
+    intake in front of a rear wheel."""
+    if part.get('facing') in ('front', 'rear'):
+        return part['facing'] == 'front'
+    lo, hi = part['range']
+    return (lo + hi) / 2 < 0
+
+
 def housing(piece, part, mats, depth):
     """Open box behind an aperture: copy the aperture's inner wall and push it `depth` into the car."""
     bm = bmesh.new()
@@ -323,7 +333,7 @@ def housing(piece, part, mats, depth):
     if part['plane'] == 'YZ':
         n = Vector((-1.0, 0.0, 0.0)) if part.get('side', 0) >= 0 else Vector((1.0, 0.0, 0.0))
     elif part['plane'] == 'XZ':
-        n = Vector((0.0, 1.0, 0.0)) if (lo + hi) / 2 < 0 else Vector((0.0, -1.0, 0.0))
+        n = Vector((0.0, 1.0, 0.0)) if _faces_front(part) else Vector((0.0, -1.0, 0.0))
     else:
         n = Vector((0.0, 0.0, -1.0))
     ext = bmesh.ops.extrude_face_region(bm, geom=list(bm.faces))
@@ -358,8 +368,10 @@ def _surface_hits(bvh, part, pts2d, inset=0.0):
             start[c] = hi + 0.5 if side >= 0 else lo - 0.5
             d[c] = -1.0 if side >= 0 else 1.0
         elif plane == 'XZ':                     # front/rear part: shoot along Y toward the centre
-            front = (lo + hi) / 2 < 0
-            start[c] = lo - 0.5 if front else hi + 0.5
+            front = _faces_front(part)
+            # start at the edge of the part's own range: the cut only exists there, and a start
+            # further out can sit inside another panel (a side intake just behind a door)
+            start[c] = lo - 0.02 if front else hi + 0.02
             d[c] = 1.0 if front else -1.0
         else:                                   # top part: shoot down
             start[c] = hi + 0.5
@@ -448,7 +460,14 @@ def grille(part, bvh, mats, coll):
                 pts2 = [(u * ca - v * sa, u * sa + v * ca) for u, v in seg]
                 mid = ((pts2[0][0] + pts2[1][0]) / 2, (pts2[0][1] + pts2[1][1]) / 2)
                 hits = _surface_hits(bvh, part, [pts2[0], mid, pts2[1]], inset=setback)
-                if len(hits) == 3:
+                if len(hits) != 3:
+                    continue
+                # a bar whose end ray slipped past the aperture edge onto a deeper surface bends:
+                # its midpoint no longer sits halfway between its ends in depth. Drop it, and any
+                # bar outside the part's own range (a sloped intake may still span a lot of depth)
+                d0, dm, d1 = (h[c] for h, _ in hits)
+                lo, hi = part['range']
+                if abs(dm - (d0 + d1) / 2) <= part.get('barBend', 0.04) and all(lo - 0.05 <= z <= hi + 0.05 for z in (d0, dm, d1)):
                     bars.append([h for h, _ in hits])
             w += pitch
     if not bars:
