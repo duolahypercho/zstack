@@ -19,6 +19,12 @@ For every view in <refs>/views.json with "kind": "ortho":
   aspect       the measured length:height matches the spec within 3% (calibrate.py
                re-checks this; failing here means the image drew a different car)
 
+Nose direction is deliberately NOT checked here. Reading it off a silhouette means guessing
+which end tapers, and a rear wing or a long deck flips the answer, so the check would reject
+good references. It is fixed at the source instead: templates/prompts.json states the direction
+critique.py rasterises (side_left has the nose at image right, top at image bottom), and score
+reports a mirrored view as a catastrophic IoU rather than a marginal one.
+
 Writes <refs>/../critique/refcheck_<view>.jpg previews of each mask, and prints
 one line per view. Exit 1 if any view must be regenerated. Fix the image, never
 the threshold.

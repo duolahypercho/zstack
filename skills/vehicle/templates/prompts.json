@@ -1,11 +1,12 @@
 {
   "_note": "{design} and {label} are filled from spec.json. The side view is generated first; every other view is generated WITH the side view as an input image so the model keeps the same car.",
+  "_orientation": "Nose direction is fixed by critique.py's ORTHO_AXES, not by convention: in side_left the nose is at image RIGHT and the top view has the nose at image BOTTOM. A view drawn the other way round is mirrored against the model and can never pass the ortho IoU gate.",
   "common": "Studio vehicle design reference sheet image. Single {label}, {design} Plain flat light-grey background, even soft lighting, no shadows on the background, sharp focus, entire vehicle visible with margin on all sides, no text, no logos, no badges, no watermark, no people.",
   "views": {
-    "side_left": "Exact orthographic LEFT SIDE elevation of the car, nose pointing to the LEFT of the image, camera at wheel-centre height, no perspective, both wheels perfectly circular, horizon level.",
+    "side_left": "Exact orthographic LEFT SIDE elevation of the car, nose pointing to the RIGHT of the image, camera at wheel-centre height, no perspective, both wheels perfectly circular, horizon level.",
     "front": "Exact orthographic FRONT elevation of the same car, camera straight on at headlamp height, no perspective, perfectly symmetric left-right.",
     "rear": "Exact orthographic REAR elevation of the same car, camera straight on at tail-lamp height, no perspective, perfectly symmetric left-right.",
-    "top": "Exact orthographic TOP plan view of the same car, nose pointing to the LEFT of the image, camera straight down, no perspective, perfectly symmetric about the car's centre line.",
+    "top": "Exact orthographic TOP plan view of the same car, nose pointing to the BOTTOM of the image (tail at the top), camera straight down, no perspective, perfectly symmetric about the car's centre line.",
     "front34": "Three-quarter FRONT view of the same car from the front-left, camera 35 degrees off the nose at 1.2 m height, 50 mm lens.",
     "rear34": "Three-quarter REAR view of the same car from the rear-right, camera 35 degrees off the tail at 1.2 m height, 50 mm lens."
   },
