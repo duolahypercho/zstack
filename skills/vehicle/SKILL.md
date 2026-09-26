@@ -54,9 +54,10 @@ styles the wheels. A split spoke starts as one arm at the hub and fans out: the 
 
 ## 2. Reference views
 
-**You generate the views** with your built-in image generation tool. No script can: `image_gen` is
-a tool only the agent can call, needs no API key, and cannot be wrapped in a provider script. So
-generation is your step, and `<skill>/scripts/refs.py` is the bookkeeping around it.
+**You generate the views** with your built-in image generation tool. This skill has no provider
+integration and needs no credentials: the image generation tool is called by you, the agent, and
+is the only way references are produced here. `<skill>/scripts/refs.py` is the bookkeeping around
+it — it writes the prompts, records each result, and runs the gate.
 
 ```
 python3 <skill>/scripts/refs.py plan runs/<id>

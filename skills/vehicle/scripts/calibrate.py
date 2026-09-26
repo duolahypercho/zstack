@@ -11,7 +11,7 @@ front/rear: width x height, top: length x width) and writes
     <run>/blueprint.json        per view: px per metre, origin pixel, aspect check
     <run>/checks/cameras.json   orthographic cameras for critique.py score
 
-A view whose aspect ratio disagrees with the spec by more than 3% is flagged: the image model
+A view whose aspect ratio disagrees with the spec by more than 3% is flagged: the generated view
 drew a different car. Regenerate or re-crop that view; never stretch it to fit.
 Photos (kind "photo") are calibrated by critique.py fit instead.
 """
