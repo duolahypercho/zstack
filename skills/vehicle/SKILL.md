@@ -1,6 +1,6 @@
 ---
 name: vehicle
-description: "Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. Generates consistent all-angle reference views with an image model (or finds reference photos on the web when no image model is available), hand-shapes the body as a mirrored all-quad subdivision cage (through Blender MCP or headless; never with an AI 3D generator), cuts it into a panelled sheet-metal body with flush glass, lamps, intakes, wheels, a furnished cabin and an engine, rigs doors / bonnet / engine cover / wheels / steering / seats, proves every opening part swings clear, adds crumple-zone morph targets, and critiques the model against every reference view (solved cameras, silhouette IoU, per-station corrections) until the silhouettes match. Use when asked to make, model, rig, or improve a car, truck, van, or any wheeled vehicle in Blender."
+description: "Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. Generates consistent all-angle reference views with the built-in image generation tool (or finds reference photos on the web), hand-shapes the body as a mirrored all-quad subdivision cage (through Blender MCP or headless; never with an AI 3D generator), cuts it into a panelled sheet-metal body with flush glass, lamps, intakes, wheels, a furnished cabin and an engine, rigs doors / bonnet / engine cover / wheels / steering / seats, proves every opening part swings clear, adds crumple-zone morph targets, and critiques the model against every reference view (solved cameras, silhouette IoU, per-station corrections) until the silhouettes match. Use when asked to make, model, rig, or improve a car, truck, van, or any wheeled vehicle in Blender."
 ---
 
 # vehicle
@@ -21,7 +21,8 @@ photo overlays next to that folder, never into the run.
 
 ```
 runs/<id>/spec.json        real dimensions                          step 1
-<refs>/views.json + images reference views (private)                step 2
+runs/<id>/refs/plan.json   the image_gen prompts, in order          step 2
+<refs>/views.json + images reference views (private), gated         step 2
 runs/<id>/curves.json      body feature curves                      step 4
 runs/<id>/parts.json       openings, lamps, intakes, panels, cabin  step 4
 runs/<id>/cage.json        the hand-shaped body cage                step 5
@@ -53,14 +54,37 @@ styles the wheels. A split spoke starts as one arm at the hub and fans out: the 
 
 ## 2. Reference views
 
-**Image model available** (`python3 <skill>/scripts/gen_refs.py probe` prints `available`):
-`python3 <skill>/scripts/gen_refs.py all runs/<id>` generates `side_left` first, then every other
-view with the side image as input, so they stay one car. Prompts: `<skill>/templates/prompts.json`.
-Reject and regenerate a view whose wheel, door or pillar count differs, that is visibly
-perspective where it must be orthographic, or that is cropped, mirrored, or carries text.
-Record each as `"kind": "ortho", "axis": "side_left" | "front" | "rear" | "top"` in `views.json`.
+**You generate the views** with your built-in image generation tool. No script can: `image_gen` is
+a tool only the agent can call, needs no API key, and cannot be wrapped in a provider script. So
+generation is your step, and `<skill>/scripts/refs.py` is the bookkeeping around it.
 
-**No image model**: search the web for photos of the vehicle (side, front 3/4, rear 3/4).
+```
+python3 <skill>/scripts/refs.py plan runs/<id>
+```
+
+prints the six prompts in order and writes `runs/<id>/refs/plan.json`. Then, for each view in
+that order: call `image_gen` with that prompt, save the result, and hand it back with
+`python3 <skill>/scripts/refs.py adopt runs/<id> --view side_left --image <path>`.
+
+**The side view first, and feed it into every later view as the input image.** That is what keeps
+six calls drawing one design instead of six different cars. The prompts carry the consistency
+clause; the attached side image is what actually enforces it.
+
+`adopt` runs the gate (`<skill>/scripts/check_refs.py`) on the view as it lands, and a failing view
+is regenerated, never accepted with a note. The gate exists because `calibrate.py` measures the
+car by thresholding the image against its own border colour: a view with a gradient studio
+background, or a car that runs off the frame edge, yields a mask of the *studio*, and the
+pixel-to-metre scale is then quietly wrong. A concept render with a beautiful moody backdrop is
+not a usable reference. Each orthographic view is recorded as
+`"kind": "ortho", "axis": "side_left" | "front" | "rear" | "top"` in `views.json`.
+
+Also reject and regenerate any view whose wheel, door or pillar count differs from the side view,
+that is visibly perspective where it must be orthographic, or that is mirrored or carries text.
+
+`front34` and `rear34` are `"kind": "photo"`. After `adopt`ing them, add their `bbox` and wheel
+anchors by hand (or point `adopt` at web photos below, which are already recorded that way).
+
+**Web photos instead**: search the web for photos of the vehicle (side, front 3/4, rear 3/4).
 Prefer clearly licensed images (e.g. Wikimedia Commons); record URL and licence in
 `<refs>/sources.tsv`. For each photo add a `views.json` entry with `"kind": "photo"`, the car's
 `bbox`, and anchors for each clearly visible wheel XX (FL/FR/RL/RR, +X is the car's LEFT):

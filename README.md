@@ -7,6 +7,9 @@ A skill never claims a result a check has not proven.
 <!-- catalog:begin -->
 | Skill | What it does |
 |-------|--------------|
+| [`building`](skills/building/SKILL.md) | Build one real building for a game end to end: open data (footprint, LiDAR height, assessor roll) into a spec, metadata tags, a look-only all-angle r…. |
+| [`interior`](skills/interior/SKILL.md) | Furnish one building's floors for a game from its metadata and interior research: public indoor references first (look-only), otherwise image-model c…. |
+| [`street-block`](skills/street-block/SKILL.md) | Make a 3D game's city (Three.js or any engine) look indistinguishable from street-level photos, block by block. |
 | [`vehicle`](skills/vehicle/SKILL.md) | Build a 1:1, fully rigged, crash-deformable, game-ready vehicle in Blender from reference images. |
 <!-- catalog:end -->
 
@@ -38,8 +41,9 @@ Reference images in, a rigged GLB out:
 
 1. **Spec**: real dimensions (length, width, height, wheelbase, tracks, tyres) from a published
    spec sheet, so the model is 1:1 by construction.
-2. **References**: six consistent views from an image model; with no image model, reference
-   photos found on the web (kept private, never shipped).
+2. **References**: six consistent views from the built-in image generation tool, gated so a view
+   with a non-flat background or an edge-cropped car cannot be modelled from; or reference photos
+   found on the web (kept private, never shipped).
 3. **Body**: a feature-line loft (top line, belt, shoulder crease, sill, plan width), solidified into
    a sheet-metal wall.
 4. **Panels**: windows cut as flush glass; lamps and intakes recessed with real housings; doors,
